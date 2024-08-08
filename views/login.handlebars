@@ -1,0 +1,11 @@
+<h1>Login</h1>
+<div id="error-container" style="display:none;color:red;"></div>
+<form id="signin-form" method="POST" action="/login">
+    <label for="email">Email:</label>
+    <input type="text" id="email" name="email">
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+    <button id="submitButton" name="submitButton" type="submit">Login</button>
+</form>
+<p id="register-link"><a href="/register">Click here to register!</a></p>
+<script src="/js/client_side_validation.js"></script>
