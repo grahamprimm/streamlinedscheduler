@@ -1,0 +1,71 @@
+body.light {
+    background-color: white;
+    color: black;
+}
+
+body.dark {
+    background-color: black;
+    color: white;
+}
+
+h1 {
+    font-size: 2em;
+    text-align: center;
+    margin-top: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+input, select, button {
+    margin-top: 5px;
+    display: block;
+    padding: 8px;
+    font-size: 1em;
+    width: 100%;
+}
+
+#error-container {
+    margin-top: 10px;
+    color: red;
+    font-weight: bold;
+}
+
+form {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+p#welcome {
+    font-size: 1.2em;
+    text-align: center;
+    margin: 20px 0;
+}
+
+p#quote {
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+a#adminLink, a#logoutLink, a#userLink, a#loginLink, p#register-link a {
+    display: block;
+    text-align: center;
+    margin: 10px 0;
+    color: blue;
+    text-decoration: none;
+}
+
+a#adminLink:hover, a#logoutLink:hover, a#userLink:hover, a#loginLink:hover, p#register-link a:hover {
+    text-decoration: underline;
+}
+
+p#register-link, p#login-link {
+    text-align: center;
+    margin-top: 10px;
+}
