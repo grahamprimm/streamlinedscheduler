@@ -29,3 +29,8 @@ export const isValidEmail = (email) => {
   // TODO: validate email
   return email.trim();
 };
+
+export const isValidRole = (role) => {
+  // TODO: validate email
+  return role.trim();
+};
