@@ -68,7 +68,7 @@ export const loginUser = async (email, password) => {
     throw new Error('Either the email or password is invalid');
   }
 
-  const { firstName, lastName, email, timezone, schedule, role  } = user;
+  const { firstName, lastName, mail, timezone, schedule, role  } = user;
 
-  return { firstName, lastName, email, timezone, schedule, role };
+  return { firstName, lastName, mail, timezone, schedule, role };
 };
