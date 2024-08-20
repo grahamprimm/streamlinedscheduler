@@ -25,12 +25,30 @@ export const isValidTimezone = (timezone) => {
   return timezone;
 };
 
-export const isValidEmail = (email) => {
+export const isValidEmail = (input, minLength, maxLength, field) => {
   // TODO: validate email
-  return email.trim();
+  
+  if (typeof input !== 'string' || input.trim().length < minLength || input.trim().length > maxLength) {
+    throw new Error(`${field} must be a string between ${minLength} and ${maxLength} characters.`);
+  }
+
+  let email = input.trim()
+
+  if(!email || ! /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
+    throw new Error('Email must be valid.');
+  }
+
+  return email;
 };
 
-export const isValidRole = (role) => {
-  // TODO: validate email
+export const isValidRole = (role, roleList) => {
+  // TODO: validate role
+
+  if (typeof role !== 'string') throw new Error('Role must be string');
+
+  role = role.trim()
+
+  if (!roleList.includes(role)) throw new Error('Role must either be admin or user')
+
   return role.trim();
 };
