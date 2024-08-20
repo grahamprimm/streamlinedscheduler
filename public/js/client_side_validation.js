@@ -21,10 +21,14 @@ const validateForm = (form) => {
   if (password !== confirmPassword) {
     errors.push('Passwords do not match.');
   }
-  if (role !== 'admin' && role !== 'user') {
+  if (!role || (role !== 'admin' && role !== 'user')) {
     errors.push('Role must be either "admin" or "user".');
   }
   // TODO: Add validation for timezone and email
+
+  if(!email || ! /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
+    errors.push('Email must be valid.');
+  }
 
   if (errors.length > 0) {
     const errorContainer = document.getElementById('error-container');
@@ -35,29 +39,48 @@ const validateForm = (form) => {
   return true;
 };
 
-document.getElementById('signup-form').addEventListener('submit', function (event) {
-  if (!validateForm(this)) {
-    event.preventDefault();
-  }
-});
+let signInForm = document.getElementById('signin-form')
+let signUpForm = document.getElementById('signup-form')
 
-document.getElementById('signin-form').addEventListener('submit', function (event) {
+if (signInForm) signInForm.addEventListener('submit', function (event) {
+  console.log('Submit event triggered')
+  event.preventDefault()
   const email = this.email.value.trim();
   const password = this.password.value.trim();
-  const errors = [];
+  let errors = [];
 
-  if (!email || email.length < 5 || email.length > 10) {
-    errors.push('Username must be a valid string between 5 and 10 characters.');
+  if (!email || email.length < 1 || email.length > 256) {
+    errors.push('Email must be a valid string between 1 and 256 characters.');
   }
   if (!password || password.length < 8 || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*]/.test(password)) {
     errors.push('Password must be at least 8 characters long and contain an uppercase letter, a number, and a special character.');
   }
 
   if (errors.length > 0) {
-    const errorContainer = document.getElementById('error-container');
+    let errorContainer = document.getElementById('error-container');
     errorContainer.innerHTML = errors.join('<br>');
     errorContainer.style.display = 'block';
     event.preventDefault();
   }
+
+  this.submit()
+
 });
+
+if(signUpForm) signUpForm.addEventListener('submit', function (event) {
+  if (!validateForm(this)) {
+    event.preventDefault();
+  }
+
+  this.submit()
+
+});
+
+
+
+
+
+
+
+
 
