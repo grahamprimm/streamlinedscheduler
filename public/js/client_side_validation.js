@@ -24,6 +24,10 @@ const validateForm = (form) => {
   if (!role || (role !== 'admin' && role !== 'user')) {
     errors.push('Role must be either "admin" or "user".');
   }
+
+  if (!timezone || (timezone !== 'EST' && timezone !== 'PST' && timezone !== 'CST')) {
+    errors.push('Timezone must either be EST or PST or CST');
+  }
   // TODO: Add validation for timezone and email
 
   if(!email || ! /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
