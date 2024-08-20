@@ -90,3 +90,18 @@ export const loginUser = async (email, password) => {
 
   return { firstName, lastName, mail, timezone, schedule, role };
 };
+
+export const getUserById = async (userId) => {
+  const usersCollection = await users();
+  console.log("Fetching user by ID:", userId);
+
+  const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+  if (!user) {
+    console.log("No user found with ID:", userId);
+    throw new Error('User not found');
+  }
+
+  console.log("User found:", user);
+  return user;
+};
