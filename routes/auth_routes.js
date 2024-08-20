@@ -27,7 +27,7 @@ router
       const result = await registerUser(firstName, lastName, email, password, timezone, role);
       console.log(result);
       if (result.signupCompleted) {
-        res.redirect('/login');
+        return res.json({ success: true, message: "Registration successful! Redirecting to login...", redirectUrl: '/login' });
       } else {
         throw new Error('Internal Server Error');
       }
@@ -89,6 +89,10 @@ router.get('/schedule', (req, res) => {
     timezone,
     schedule: getScheduleById(schedule)
   });
+  catch (e) {
+    console.error("Error retrieving schedule:", e);
+    res.status(500).send('Error retrieving schedule.');
+  }
 });
 
 export default router;
