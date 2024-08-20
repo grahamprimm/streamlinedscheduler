@@ -69,26 +69,40 @@ router.get('/logout', (req, res) => {
 
 router.get('/admin', (req, res) => {
   const { firstName, lastName, timezone } = req.session.user;
+
+  let currentTime
+
+  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
+  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+  
   res.render('admin', {
     firstName,
     lastName,
-    currentTime: new Date().toLocaleString(),
+    currentTime,
     timezone
     // TODO: Pass in a list of users and their schedules as hyperlinks??
   });
 });
 
 router.get('/schedule', (req, res) => {
-  const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
+  try{const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
+
+  let currentTime
+
+  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
+  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+  
   res.render('schedule', {
     firstName,
     lastName,
     email,
-    currentTime: new Date().toLocaleString(),
+    currentTime,
     role,
     timezone,
     schedule: getScheduleById(schedule)
-  });
+  });}
   catch (e) {
     console.error("Error retrieving schedule:", e);
     res.status(500).send('Error retrieving schedule.');
