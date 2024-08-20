@@ -82,6 +82,83 @@ if(signUpForm) signUpForm.addEventListener('submit', function (event) {
 
 
 
+const displayErrors = (errors) => {
+    console.log("Displaying errors:", errors);
+    const errorContainer = document.getElementById('error-container');
+    errorContainer.innerHTML = errors.join('<br>');
+    errorContainer.style.display = 'block';
+};
+
+const clearErrors = () => {
+    console.log("Clearing errors");
+    const errorContainer = document.getElementById('error-container');
+    if (errorContainer) {
+        errorContainer.innerHTML = '';
+        errorContainer.style.display = 'none';
+    } else {
+        console.error('Error container not found');
+    }
+};
+
+const handleFormSubmission = (form, url) => {
+  console.log("Handling form submission");
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
+
+  console.log("Form data being submitted:", data);
+
+  fetch(url, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+  })
+  .then(response => response.json())
+  .then(result => {
+      console.log("Form submission result:", result);
+      if (result.success) {
+          const successContainer = document.getElementById('success-container');
+          if (successContainer) {
+              successContainer.innerHTML = result.message;
+              successContainer.style.display = 'block';
+          }
+
+          // Redirect to the login page after a short delay
+          setTimeout(() => {
+              window.location.href = result.redirectUrl;
+          }, 2000);  // 2-second delay before redirecting
+      } else {
+          displayErrors([result.message || 'An error occurred while processing your request.']);
+      }
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      displayErrors(['A network error occurred: ' + error.message + '. Please try again later.']);
+  });
+};
+
+
+// Ensure this script runs after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM fully loaded and parsed");
+
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+        console.log("Signup form found");
+        signupForm.addEventListener('submit', function (event) {
+            console.log("Signup form submitted");
+            if (!validateForm(this)) {
+                event.preventDefault();
+            } else {
+                event.preventDefault(); // Prevent default to handle submission via JS
+                handleFormSubmission(this, '/register');
+            }
+        });
+    }
+});
+
+
 
 
 
