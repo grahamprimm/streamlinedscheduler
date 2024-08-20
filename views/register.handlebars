@@ -1,6 +1,14 @@
 <h1>Register</h1>
-
-  <div id="error-container" style="color:red;">{{error}}</div>
+<div id="error-container" style="color:red;">
+  {{#if error}}
+    {{error}}
+  {{/if}}
+</div>
+<div id="success-container" style="color:green; display:none;">
+  {{#if success}}
+    {{success}}
+  {{/if}}
+</div>
 
 <form id="signup-form" method="POST" action="/register">
     <label for="firstName">First Name:</label>
