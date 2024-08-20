@@ -22,6 +22,9 @@ export const isValidPassword = (password) => {
 
 export const isValidTimezone = (timezone) => {
   // TODO: validate timezone
+  
+  if (!timezone || ( timezone !== 'EST' && timezone !== 'PST' && timezone != 'CST' )) throw new Error('Timezone must either be EST or PST or CST')  
+  
   return timezone;
 };
 
