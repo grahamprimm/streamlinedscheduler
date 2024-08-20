@@ -1,108 +1,39 @@
-import express from 'express';
-import { getScheduleById } from '../data/schedules.js';
-import { registerUser, loginUser } from '../data/users.js';
+import { schedules } from '../config/mongoCollections.js';
+import { ObjectId } from 'mongodb';
 
-const router = express.Router();
+export const createSchedule = async () => {
+  const schedulesCollection = await schedules();
 
-router.route('/').get(async (req, res) => {
-  //code here for GET THIS ROUTE SHOULD NEVER FIRE BECAUSE OF MIDDLEWARE #1 IN SPECS.
-  return res.json({error: 'YOU SHOULD NOT BE HERE!'});
-});
+  const newSchedule = {
+    _id: new ObjectId(),
+    title: 'My Schedule',
+    events: [],
+    sharedWith: []
+  };
 
-router
-  .route('/register')
-  .get((req, res) => {
-    res.render('register', { title: 'Register' });
-  })
-  .post(async (req, res) => {
-    const { firstName, lastName, email, password, confirmPassword, timezone, role } = req.body;
-    try {
-      if (!firstName || !lastName || !email || !password || !confirmPassword || !timezone || !role) {
-        throw new Error('All fields must be provided.');
-      }
-      if (password !== confirmPassword) {
-        throw new Error('Passwords do not match.');
-      }
+  const insertResult = await schedulesCollection.insertOne(newSchedule);
 
-      const result = await registerUser(firstName, lastName, email, password, timezone, role);
-      console.log(result);
-      if (result.signupCompleted) {
-        res.redirect('/login');
-      } else {
-        throw new Error('Internal Server Error');
-      }
-    } catch (e) {
-      res.status(400).render('register', { title: 'Register', error: e.message });
-    }
-  });
+  if (insertResult.insertedCount === 0 || !insertResult.acknowledged || !insertResult.insertedId) {
+    throw new Error('Could not add schedule');
+  }
 
-router
-  .route('/login')
-  .get((req, res) => {
-    res.render('login', { title: 'Login' });
-  })
-  .post(async (req, res) => {
-    const { email, password } = req.body;
-    try {
-      if (!email || !password) {
-        throw new Error('Username and password must be provided.');
-      }
-      const user = await loginUser(email, password);
-      
-      req.session.user = user;
-      if (user.role === 'admin') {
-        res.redirect('/admin');
-      } else {
-        res.redirect('/schedule');
-      }
-    } catch (e) {
-      res.status(400).render('login', { title: 'Login', error: e.message });
-    }
-  });
+  const newId = insertResult.insertedId.toString();
 
-router.get('/logout', (req, res) => {
-  const themePreference = req.session.user ? req.session.user.themePreference : 'light';
-  req.session.destroy();
-  res.render('logout', { message: 'You have been logged out. <a href="/login">Login again</a>', themePreference });
-});
+  return newId;
+}
 
+export const getScheduleById = async (id) => {
+  const schedulesCollection = await schedules();
 
-router.get('/admin', (req, res) => {
-  const { firstName, lastName, timezone } = req.session.user;
+  if(!ObjectId.isValid(id)) throw 'Not a valid ID'
 
-  let currentTime
-  
-  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
-  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
-  
-  res.render('admin', {
-    firstName,
-    lastName,
-    currentTime: new Date().toLocaleString(),
-    timezone
-    // TODO: Pass in a list of users and their schedules as hyperlinks??
-  });
-});
+  let idno = ObjectId.createFromHexString(id)
 
-router.get('/schedule', (req, res) => {
-  const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
+  const schedule = await schedulesCollection.findOne({ _id: idno });
 
-  let currentTime
-  
-  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
-  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+  if (!schedule) {
+    throw new Error('Schedule not found');
+  }
 
-  res.render('schedule', {
-    firstName,
-    lastName,
-    email,
-    currentTime,
-    role,
-    timezone,
-    schedule: getScheduleById(schedule)
-  });
-});
-
-export default router;
+  return schedule;
+}
