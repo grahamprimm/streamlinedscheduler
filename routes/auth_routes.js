@@ -27,7 +27,8 @@ router
       const result = await registerUser(firstName, lastName, email, password, timezone, role);
       console.log(result);
       if (result.signupCompleted) {
-        return res.json({ success: true, message: "Registration successful! Redirecting to login...", redirectUrl: '/login' });
+        res.status(200).redirect('/login')
+        //return res.status(200).json({ success: true, message: "Registration successful! Redirecting to login...", redirectUrl: '/login' });
       } else {
         throw new Error('Internal Server Error');
       }
@@ -53,7 +54,7 @@ router
       if (user.role === 'admin') {
         res.redirect('/admin');
       } else {
-        res.redirect('/schedule');
+        res.redirect('/schedules');
       }
     } catch (e) {
       res.status(400).render('login', { title: 'Login', error: e.message });
@@ -85,8 +86,8 @@ router.get('/admin', (req, res) => {
   });
 });
 
-router.get('/schedule', (req, res) => {
-  try{const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
+router.get('/schedules', (req, res) => {
+  try{const { firstName, lastName, email, role, timezone, schedules, sharedSchedules } = req.session.user;
 
   let currentTime
 
@@ -101,7 +102,8 @@ router.get('/schedule', (req, res) => {
     currentTime,
     role,
     timezone,
-    schedule: getScheduleById(schedule)
+    schedules,
+    sharedSchedules
   });}
   catch (e) {
     console.error("Error retrieving schedule:", e);
