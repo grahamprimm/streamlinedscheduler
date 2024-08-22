@@ -1,5 +1,5 @@
 import express from 'express';
-import { getScheduleById } from '../data/schedules.js';
+import { getScheduleById } from '../data/schedule.js';
 import { registerUser, loginUser } from '../data/users.js';
 
 const router = express.Router();
@@ -54,7 +54,7 @@ router
       if (user.role === 'admin') {
         res.status(200).redirect('/admin');
       } else {
-        res.status(200).redirect('/schedules');
+        res.status(200).redirect('/schedule');
       }
     } catch (e) {
       res.status(400).render('login', { title: 'Login', error: e.message });
@@ -86,29 +86,39 @@ router.get('/admin', (req, res) => {
   });
 });
 
-router.get('/schedules', (req, res) => {
-  try{const { firstName, lastName, email, role, timezone, schedules, sharedSchedules } = req.session.user;
+router.get('/schedule', async (req, res) => {
+  try {
+    const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
+    //console.log("User schedule ID:", schedule);
 
-  let currentTime
+    // Check if schedule array is empty
+    if (!schedule || schedule.length === 0) {
+      return res.status(400).render('error', { message: 'No schedule found for this user.' });
+    }
 
-  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
-  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
-  
-  res.status(200).render('schedule', {
-    firstName,
-    lastName,
-    email,
-    currentTime,
-    role,
-    timezone,
-    schedules,
-    sharedSchedules
-  });}
-  catch (e) {
+    let currentTime;
+
+    if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+    if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+    if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+
+    const fullSchedule = await getScheduleById(schedule[0]);
+
+    res.render('schedule', {
+      firstName,
+      lastName,
+      email,
+      currentTime: currentTime,
+      role,
+      timezone,
+      schedule: fullSchedule
+    });
+
+  } catch (e) {
     console.error("Error retrieving schedule:", e);
     res.status(500).send('Error retrieving schedule.');
   }
 });
+
 
 export default router;

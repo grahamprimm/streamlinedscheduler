@@ -8,13 +8,17 @@
     "start": "node app.js"
   },
   "contributors": [
-    {"name": "Graham Primm", "url": "https://github.com/grahamprimm"}
+    {
+      "name": "Graham Primm",
+      "url": "https://github.com/grahamprimm"
+    }
   ],
   "dependencies": {
     "bcrypt": "^5.1.1",
     "express": "^4.19.2",
     "express-handlebars": "^7.1.3",
     "express-session": "^1.18.0",
+    "fullcalendar": "^6.1.15",
     "mongodb": "^6.8.0",
     "path": "^0.12.7",
     "url": "^0.11.4"

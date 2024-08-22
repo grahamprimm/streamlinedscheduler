@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { users } from '../config/mongoCollections.js';
 import { isValidString, isValidPassword, isValidEmail, isValidTimezone, isValidRole } from '../helpers.js';
-import {createSchedule, getScheduleById} from './schedules.js'
+import {createSchedule, getScheduleById} from './schedule.js'
 
 const saltRounds = 16;
 
@@ -20,10 +20,7 @@ export const registerUser = async (
   email = isValidEmail(email, 1, 256, 'Email').toLowerCase();
   password = isValidPassword(password);
   timezone = isValidTimezone(timezone);
-  // make sure schedule is null
-  let schedules = [];
-  let sharedSchedules = [];
-  
+
   role = isValidRole(role, ['admin', 'user']);
 
   const existingUser = await usersCollection.findOne({ email });
@@ -33,7 +30,8 @@ export const registerUser = async (
 
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  //schedule = await createSchedule()
+  // Create a new schedule for the user
+  const newScheduleId = await createSchedule();
 
   const newUser = {
     firstName,
@@ -42,8 +40,7 @@ export const registerUser = async (
     password: hashedPassword,
     timezone,
     role,
-    schedules,
-    sharedSchedules
+    schedule: [newScheduleId]
   };
 
   const insertResult = await usersCollection.insertOne(newUser);
@@ -55,25 +52,14 @@ export const registerUser = async (
   return { signupCompleted: true };
 };
 
-export const loginUser = async (email, password) => {
-  
-  
 
+export const loginUser = async (email, password) => {
   const usersCollection = await users();
   
-  
-
   email = isValidEmail(email, 1, 256, 'Email').toLowerCase(); // TODO: validate email
-
-  
-
   password = isValidPassword(password);
 
-  
-
   const user = await usersCollection.findOne({ email });
-
-  
 
   if (!user) {
     throw new Error('Either the email or password is invalid');
@@ -84,13 +70,9 @@ export const loginUser = async (email, password) => {
     throw new Error('Either the email or password is invalid');
   }
 
-  
+  const { firstName, lastName, mail, timezone, schedule, role  } = user;
 
-  const { firstName, lastName, mail, timezone, schedules, sharedSchedules, role  } = user;
-
-  
-
-  return { firstName, lastName, mail, timezone, schedules, sharedSchedules, role };
+  return { firstName, lastName, mail, timezone, schedule, role };
 };
 
 export const getUserById = async (userId) => {

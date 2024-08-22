@@ -69,3 +69,9 @@ p#register-link, p#login-link {
     text-align: center;
     margin-top: 10px;
 }
+
+#calendar {
+    max-width: 900px;
+    margin: 40px auto;
+}
+  

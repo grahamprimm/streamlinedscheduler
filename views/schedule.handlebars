@@ -1,8 +1,33 @@
 <div id="userView">
     <p id="welcome">Welcome {{firstName}} {{lastName}}, the time is now: {{currentTime}} {{timezone}}. Your role in the system is: {{role}}.</p>
-    <!-- TODO: Make the schedule actually show a schedule -->
-    {{#if isAdmin}}
-    <a id="adminLink" href="/admin">Admin Page</a>
-    {{/if}}
-    <a id="logoutLink" href="/logout">Logout</a>
+    <p>Schedule: {{schedule.title}}</p>
 </div>
+
+<div id="calendar"></div> <!-- FullCalendar container -->
+
+<script src='/fullcalendar/index.global.js'></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var events = [];
+
+    // Loop through the events array in the schedule
+    {{#each schedule.events}}
+    events.push({
+      title: "{{this.title}}",
+      start: "{{this.start}}",
+      end: "{{this.end}}"
+    });
+    {{/each}}
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'list',
+      duration: { days: 7 },
+      events: events
+    });
+    calendar.render();
+  });
+</script>
+
+<!-- Put logout link at the bottom of the page -->
+<p id="logoutLink"><a href="/logout">Logout</a></p>
