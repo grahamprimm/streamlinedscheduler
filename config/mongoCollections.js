@@ -17,3 +17,4 @@ const getCollectionFn = (collection) => {
 
 export const users = getCollectionFn('users');
 export const schedules = getCollectionFn('schedules');
+export const events = getCollectionFn('events')
