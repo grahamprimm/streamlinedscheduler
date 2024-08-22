@@ -52,9 +52,9 @@ router
       
       req.session.user = user;
       if (user.role === 'admin') {
-        res.redirect('/admin');
+        res.status(200).redirect('/admin');
       } else {
-        res.redirect('/schedules');
+        res.status(200).redirect('/schedules');
       }
     } catch (e) {
       res.status(400).render('login', { title: 'Login', error: e.message });
@@ -64,7 +64,7 @@ router
 router.get('/logout', (req, res) => {
   const themePreference = req.session.user ? req.session.user.themePreference : 'light';
   req.session.destroy();
-  res.render('logout', { message: 'You have been logged out. <a href="/login">Login again</a>', themePreference });
+  res.status(200).render('logout', { message: 'You have been logged out. <a href="/login">Login again</a>', themePreference });
 });
 
 
@@ -77,7 +77,7 @@ router.get('/admin', (req, res) => {
   if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
   if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
   
-  res.render('admin', {
+  res.status(200).render('admin', {
     firstName,
     lastName,
     currentTime,
@@ -95,7 +95,7 @@ router.get('/schedules', (req, res) => {
   if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
   if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
   
-  res.render('schedule', {
+  res.status(200).render('schedule', {
     firstName,
     lastName,
     email,
