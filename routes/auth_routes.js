@@ -92,7 +92,7 @@ router.get('/schedule', async (req, res) => {
     //console.log("User schedule ID:", schedule);
 
     // Check if schedule array is empty
-    if (!schedule || schedule.length === 0) {
+    if (!schedule) {
       return res.status(400).render('error', { message: 'No schedule found for this user.' });
     }
 
@@ -102,7 +102,7 @@ router.get('/schedule', async (req, res) => {
     if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
     if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
 
-    const fullSchedule = await getScheduleById(schedule[0]);
+    const fullSchedule = await getScheduleById(schedule);
 
     res.render('schedule', {
       firstName,
