@@ -21,7 +21,8 @@ export const registerUser = async (
   password = isValidPassword(password);
   timezone = isValidTimezone(timezone);
   // make sure schedule is null
-  let schedule = null;
+  let schedules = [];
+  let sharedSchedules = [];
   
   role = isValidRole(role, ['admin', 'user']);
 
@@ -32,7 +33,7 @@ export const registerUser = async (
 
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  schedule = await createSchedule()
+  //schedule = await createSchedule()
 
   const newUser = {
     firstName,
@@ -41,7 +42,8 @@ export const registerUser = async (
     password: hashedPassword,
     timezone,
     role,
-    schedule
+    schedules,
+    sharedSchedules
   };
 
   const insertResult = await usersCollection.insertOne(newUser);
@@ -84,11 +86,11 @@ export const loginUser = async (email, password) => {
 
   
 
-  const { firstName, lastName, mail, timezone, schedule, role  } = user;
+  const { firstName, lastName, mail, timezone, schedules, sharedSchedules, role  } = user;
 
   
 
-  return { firstName, lastName, mail, timezone, schedule, role };
+  return { firstName, lastName, mail, timezone, schedules, sharedSchedules, role };
 };
 
 export const getUserById = async (userId) => {
