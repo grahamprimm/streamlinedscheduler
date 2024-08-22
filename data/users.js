@@ -40,7 +40,7 @@ export const registerUser = async (
     password: hashedPassword,
     timezone,
     role,
-    schedule: [newScheduleId]
+    schedule: newScheduleId
   };
 
   const insertResult = await usersCollection.insertOne(newUser);
