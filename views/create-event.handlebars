@@ -1,0 +1,62 @@
+<body>
+  <h1>Create a New Event</h1>
+
+  {{#if error}}
+    <div class="error">{{error}}</div>
+  {{/if}}
+
+  <form action="/create-event" method="POST">
+    <div>
+      <label for="title">Event Title:</label>
+      <input type="text" id="title" name="title" required>
+    </div>
+    
+    <div>
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" required></textarea>
+    </div>
+    
+    <div>
+      <label for="startTime">Start Time:</label>
+      <input type="datetime-local" id="startTime" name="startTime" required>
+    </div>
+    
+    <div>
+      <label for="endTime">End Time:</label>
+      <input type="datetime-local" id="endTime" name="endTime" required>
+    </div>
+    
+    <div>
+      <label for="location">Location:</label>
+      <input type="text" id="location" name="location" required>
+    </div>
+    
+    <div>
+      <label for="reminder">Reminder (minutes before):</label>
+      <input type="number" id="reminder" name="reminder" required>
+    </div>
+    
+    <div>
+      <label for="isRecurring">Is Recurring?</label>
+      <input type="checkbox" id="isRecurring" name="isRecurring">
+    </div>
+    
+    <div>
+      <label for="recurrenceFrequency">Recurrence Frequency (e.g., weekly, monthly):</label>
+      <input type="text" id="recurrenceFrequency" name="recurrenceFrequency">
+    </div>
+    
+    <div>
+      <label for="sharedWith">Share Event With (comma-separated user IDs):</label>
+      <input type="text" id="sharedWith" name="sharedWith">
+    </div>
+    
+    <div>
+      <label for="userId">User ID:</label>
+      <input type="text" id="userId" name="userId" value="{{userId}}" readonly>
+    </div>
+    
+    <button type="submit">Create Event</button>
+  </form>
+
+</body>

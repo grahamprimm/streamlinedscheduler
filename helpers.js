@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 export const isValidString = (input, minLength, maxLength, field) => {
 
   if (typeof input !== 'string' || input.trim().length < minLength || input.trim().length > maxLength) {
@@ -54,4 +56,26 @@ export const isValidRole = (role, roleList) => {
   if (!roleList.includes(role)) throw new Error('Role must either be admin or user')
 
   return role.trim();
+};
+
+export const isValidUserId = (userId) => {
+  if (typeof userId !== 'string' || userId.trim().length === 0) {
+    throw new Error('User ID must be a non-empty string.');
+  }
+
+  if (!ObjectId.isValid(userId)) {
+      throw new Error('Invalid User ID.');
+  }
+
+  return userId.trim();
+}
+
+export const isValidEventId = (eventId) => {
+  if (typeof eventId !== 'string' || eventId.trim().length === 0) {
+      throw new Error('Event ID must be a non-empty string.');
+  }
+  if (!ObjectId.isValid(eventId)) {
+      throw new Error('Invalid Event ID.');
+  }
+  return eventId.trim();
 };

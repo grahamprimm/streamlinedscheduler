@@ -3,6 +3,7 @@
     <p>Schedule: {{schedule.title}}</p>
 </div>
 
+<button id="create-event">Create an Event</button>
 <div id="calendar"></div> <!-- FullCalendar container -->
 
 <script src='/fullcalendar/index.global.js'></script>
@@ -26,6 +27,12 @@
       events: events
     });
     calendar.render();
+
+    var createEventBtn = document.getElementById('create-event');
+    createEventBtn.addEventListener('click', function() {
+      window.location.href = '/create-event';
+    });
+
   });
 </script>
 

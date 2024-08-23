@@ -1,4 +1,5 @@
 import authRoutes from './auth_routes.js';
+import eventRoutes from './eventRoutes.js';
 import { authMiddleware, adminAuthMiddleware, loginRedirectMiddleware } from '../middleware.js';
 
 const constructorMethod = (app) => {
@@ -8,6 +9,7 @@ const constructorMethod = (app) => {
   app.use('/admin', adminAuthMiddleware);
   app.use('/logout', authMiddleware);
 
+  app.use('/', eventRoutes)
   app.use('/', authRoutes);
 
   app.use('*', (req, res) => {
