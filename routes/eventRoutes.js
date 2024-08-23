@@ -1,12 +1,23 @@
 import express from 'express';
 import { createEvent, getEventById, updateEventInDb, deleteEventFromDb } from '../data/event.js';
-import { updateScheduleEvents, removeEventFromSchedule, addEventToScheduleByUserId } from '../data/schedules.js';
-import { createNotification } from '../data/notification.js';
+import { updateScheduleEvents, deleteEventFromSchedule, addEventToScheduleByUserId } from '../data/schedule.js';
+//import { createNotification } from '../data/notification.js';
 
 const router = express.Router();
 
-// Route to add a new event
-router.post('/add', async (req, res) => {
+// Route to render the event creation page
+router.get('/create-event', async (req, res) => {
+  try {
+    // Render the create event page
+    res.render('create-event', { title: 'Create Event' });
+  } catch (e) {
+    console.error("Error retrieving create-event page:", e);
+    res.status(500).send('Error retrieving event creation page.');
+  }
+});
+
+// Route to create a new event
+router.post('/create-event', async (req, res) => {
   try {
     const { title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith, userId } = req.body;
 
@@ -23,7 +34,7 @@ router.post('/add', async (req, res) => {
     await addEventToScheduleByUserId(userId, event._id);
 
     // Create a notification for the user
-    await createNotification(userId, 'Event Created', `Event "${title}" has been created.`);
+    //await createNotification(userId, 'Event Created', `Event "${title}" has been created.`);
 
     res.status(201).json({ success: true, event });
   } catch (e) {

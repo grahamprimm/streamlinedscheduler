@@ -188,7 +188,7 @@ export const updateEventInDb = async (id, title,
         
         }
 
-export const removeEventFromDb = async (id) => {
+export const deleteEventFromDb = async (id) => {
 
     if (typeof id != 'string') throw 'ID must be a string';
 
