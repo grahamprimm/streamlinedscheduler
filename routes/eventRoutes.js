@@ -8,16 +8,16 @@ const router = express.Router();
 // Route to add a new event
 router.post('/add', async (req, res) => {
   try {
-    const { title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, userId } = req.body;
+    const { title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith, userId } = req.body;
 
-    const { event } = await createEvent(title,
+    const { event } = await createEvent(title, userId, 
     description,
     startTime,
     endTime,
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency);
+    recurrenceFrequency, sharedWith);
 
     // Add event to user's schedule
     await addEventToScheduleByUserId(userId, event._id);
@@ -53,7 +53,7 @@ router.post('/edit/:id', async (req, res) => {
     }
 
     // Update the event
-    const updatedEvent = await updateEventInDb(id, title, description, startTime, endTime, location, reminder, isRecurring, recurrencePattern);
+    const updatedEvent = await updateEventInDb(id, title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith);
 
     // Update the user's schedule
     await updateScheduleEvents(userId, updatedEvent);
