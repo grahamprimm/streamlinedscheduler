@@ -89,7 +89,7 @@ export const updateEventInDb = async (title,
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency) => {if (!title) throw 'Title not provided'
+    recurrenceFrequency, userId) => {if (!title) throw 'Title not provided'
         if (!description) throw 'not provided'
         if (!startTime) throw 'not provided'
         if (!endTime) throw 'not provided'
@@ -119,7 +119,8 @@ export const updateEventInDb = async (title,
             isRecurring,
             recurrenceFrequency}
         
-        
+            const idno = ObjectId.createFromHexString(userId);
+
             const updatedEvent = event.findOneAndUpdate(
   
                 {_id: idno},
