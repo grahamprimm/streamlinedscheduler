@@ -10,7 +10,14 @@ router.post('/add', async (req, res) => {
   try {
     const { title, description, startTime, endTime, location, reminder, isRecurring, recurrencePattern, userId } = req.body;
 
-    const { event } = await createEvent(title, description, startTime, endTime, location, reminder, isRecurring, recurrencePattern);
+    const { event } = await createEvent(title,
+    description,
+    startTime,
+    endTime,
+    location,
+    reminder,
+    isRecurring,
+    recurrenceFrequency);
 
     // Add event to user's schedule
     await addEventToScheduleByUserId(userId, event._id);
@@ -29,7 +36,14 @@ router.post('/add', async (req, res) => {
 router.post('/edit/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, startTime, endTime, location, reminder, isRecurring, recurrencePattern, userId } = req.body;
+    const { title,
+    description,
+    startTime,
+    endTime,
+    location,
+    reminder,
+    isRecurring,
+    recurrenceFrequency, userId } = req.body;
 
     // Fetch the existing event
     const event = await getEventById(id);
