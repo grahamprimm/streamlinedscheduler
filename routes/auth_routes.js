@@ -93,7 +93,7 @@ router.get('/admin', async (req, res) => {
 
 router.get('/schedule', async (req, res) => {
   try {
-    const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
+    const { firstName, lastName, email, role, timezone, schedule, eventsCreated, eventsShared } = req.session.user;
 
     if (!schedule) {
       return res.status(400).render('error', { message: 'No schedule found for this user.' });
@@ -114,7 +114,9 @@ router.get('/schedule', async (req, res) => {
       currentTime: currentTime,
       role,
       timezone,
-      schedule: fullSchedule
+      schedule: fullSchedule,
+      eventsCreated,
+      eventsShared
     });
 
   } catch (e) {
