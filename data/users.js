@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt';
-import { users } from '../config/mongoCollections.js';
+import { ObjectId } from 'mongodb';
+import { users, schedules } from '../config/mongoCollections.js';
 import { isValidString, isValidPassword, isValidEmail, isValidTimezone, isValidRole } from '../helpers.js';
-import {createSchedule, getScheduleById} from './schedule.js'
+import {createSchedule} from './schedule.js'
 
 const saltRounds = 16;
 
@@ -88,4 +89,32 @@ export const getUserById = async (userId) => {
 
   console.log("User found:", user);
   return user;
+};
+
+export const getAllUsersWithSchedules = async () => {
+  const usersCollection = await users();
+  const schedulesCollection = await schedules();
+
+  const usersList = await usersCollection.find({}).toArray();
+
+  for (let user of usersList) {
+    if (user.schedule) {
+      const schedule = await schedulesCollection.findOne({ _id: new ObjectId(user.schedule) });
+      
+      if (schedule) {
+        // Convert events to FullCalendar format
+        schedule.events = schedule.events.map(event => ({
+          title: event.title,
+          start: event.start,
+          end: event.end
+        }));
+      }
+      
+      user.schedule = schedule || { events: [] };  // Attach the schedule to the user object
+    } else {
+      user.schedule = { events: [] };  // Handle users without a schedule
+    }
+  }
+
+  return usersList;
 };

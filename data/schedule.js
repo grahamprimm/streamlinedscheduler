@@ -41,7 +41,6 @@ export const createSchedule = async () => {
 
 export const getScheduleById = async (id) => {
   const schedulesCollection = await schedules();
-  //console.log(id);
 
   if(!ObjectId.isValid(id)) throw 'Not a valid ID';
 

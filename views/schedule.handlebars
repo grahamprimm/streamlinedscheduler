@@ -29,5 +29,8 @@
   });
 </script>
 
-<!-- Put logout link at the bottom of the page -->
+{{#ifeq role 'admin'}}
+<p id="adminLink"><a href="/admin">Admin Page</a></p>
+{{/ifeq}}
+
 <p id="logoutLink"><a href="/logout">Logout</a></p>

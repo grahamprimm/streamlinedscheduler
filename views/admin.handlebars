@@ -3,3 +3,63 @@
     <a id="scheduleLink" href="/schedule">User Page</a>
     <a id="logoutLink" href="/logout">Logout</a>
 </div>
+
+<div id="userSchedules">
+    {{#each users}}
+    <div class="user-schedule">
+        <button class="collapsible">{{this.firstName}} {{this.lastName}}'s Schedule</button>
+        <div class="content">
+            <p>Email: {{this.email}}</p>
+            <div id="calendar-{{@index}}" class="fc"></div> <!-- Add class "fc" for easier selection -->
+        </div>
+    </div>
+    {{/each}}
+</div>
+
+<script src="/fullcalendar/index.global.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var coll = document.getElementsByClassName("collapsible");
+
+  var allUsersEvents = [];
+  {{#each users}}
+  allUsersEvents.push({
+    events: {{{json this.schedule.events}}}
+  });
+  {{/each}}
+
+  for (let i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var content = this.nextElementSibling;
+
+      if (content.classList.contains("expanded")) {
+        content.classList.remove("expanded");
+        content.style.display = "none";
+      } else {
+        content.classList.add("expanded");
+        content.style.display = "block";
+
+        if (!this.dataset.initialized) {
+          var calendarEl = content.querySelector('.fc');
+          if (calendarEl) {
+            initializeCalendar(calendarEl, i);
+            this.dataset.initialized = true;
+          }
+        }
+      }
+    });
+  }
+
+  function initializeCalendar(calendarEl, index) {
+    var events = allUsersEvents[index]?.events || [];
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'listWeek',
+      height: 'auto',
+      events: events
+    });
+    calendar.render();
+  }
+});
+</script>

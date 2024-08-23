@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import configRoutes from './routes/index.js';
 import loggingMiddleware from './middleware.js';
+import Handlebars from 'handlebars';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,6 +22,18 @@ const hbs = create({
   defaultLayout: 'main',
   layoutsDir: __dirname + '/views/layouts',
   partialsDir: __dirname + '/views/partials'
+});
+
+Handlebars.registerHelper('ifeq', function(a, b, options) {
+  if (a === b) {
+    return options.fn(this);
+  } else {
+    return options.inverse(this);
+  }
+});
+
+Handlebars.registerHelper('json', function(context) {
+  return JSON.stringify(context);
 });
 
 app.engine('handlebars', hbs.engine);

@@ -1,6 +1,6 @@
 import express from 'express';
 import { getScheduleById } from '../data/schedule.js';
-import { registerUser, loginUser } from '../data/users.js';
+import { registerUser, loginUser, getAllUsersWithSchedules } from '../data/users.js';
 
 const router = express.Router();
 
@@ -68,30 +68,33 @@ router.get('/logout', (req, res) => {
 });
 
 
-router.get('/admin', (req, res) => {
+router.get('/admin', async (req, res) => {
   const { firstName, lastName, timezone } = req.session.user;
 
-  let currentTime
+  let currentTime;
+  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
 
-  if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
-  if (timezone === 'EST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-  if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
-  
-  res.status(200).render('admin', {
-    firstName,
-    lastName,
-    currentTime,
-    timezone
-    // TODO: Pass in a list of users and their schedules as hyperlinks??
-  });
+  try {
+    const users = await getAllUsersWithSchedules();
+    res.render('admin', {
+      firstName,
+      lastName,
+      currentTime,
+      timezone,
+      users
+    });
+  } catch (e) {
+    console.error("Error retrieving users and schedules:", e);
+    res.status(500).send('Error retrieving users and schedules.');
+  }
 });
 
 router.get('/schedule', async (req, res) => {
   try {
     const { firstName, lastName, email, role, timezone, schedule } = req.session.user;
-    //console.log("User schedule ID:", schedule);
 
-    // Check if schedule array is empty
     if (!schedule) {
       return res.status(400).render('error', { message: 'No schedule found for this user.' });
     }
@@ -119,6 +122,5 @@ router.get('/schedule', async (req, res) => {
     res.status(500).send('Error retrieving schedule.');
   }
 });
-
 
 export default router;
