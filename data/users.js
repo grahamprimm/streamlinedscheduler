@@ -123,3 +123,20 @@ export const getAllUsersWithSchedules = async () => {
 
   return usersList;
 };
+
+export const getIdFromEmail = async (email) => {
+
+email = isValidEmail(email)
+
+const userList = await users()
+
+const user = await userList.findOne({ email: email });
+
+if (!user) {
+throw new Error('User not found');
+}
+
+    
+return user._id.toString();
+
+}
