@@ -8,7 +8,7 @@ const router = express.Router();
 // Route to add a new event
 router.post('/add', async (req, res) => {
   try {
-    const { title, description, startTime, endTime, location, reminder, isRecurring, recurrencePattern, userId } = req.body;
+    const { title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, userId } = req.body;
 
     const { event } = await createEvent(title,
     description,
