@@ -1,21 +1,34 @@
 import {events} from '../config/mongoCollections.js'
 import { ObjectId } from 'mongodb';
+import {isValidEmail} from '../helpers.js'
+import {getAllUsersWithSchedules} from './users.js'
 
 export const createEvent = async (
     title,
+    createdBy,
     description,
     startTime,
     endTime,
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency
+    recurrenceFrequency,
+    sharedWith
 ) => 
     
 {
 
     const event = await events()
     
+    let allUsers = await getAllUsersWithSchedules()
+
+    let allUserIDs = []
+
+    for (let user of allUsers)
+    {
+    let userId = user._id.toString()
+    allUserIDs.push(userId)
+    }
 
     if (!title) throw 'Title not provided'
     if (!description) throw 'not provided'
@@ -25,6 +38,26 @@ export const createEvent = async (
     if (!reminder) throw 'not provided'
     if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read'
     if (!recurrenceFrequency) throw 'not provided'
+    if (!sharedWith) throw 'sharedWith not provided'
+    if (!createdBy) throw 'Event creator not provided'
+
+    if (!ObjectId.isValid(createdBy)) throw 'Invalid ID';
+
+    if(!allUserIDs.includes(createdBy)) throw 'Invalid event creator'
+
+
+    if (Array.isArray(sharedWith)) throw 'sharedWith must be an array'
+
+    if(sharedWith.length>0)
+    {
+        for (let i = 0; i < sharedWith.length; i++) {
+            let userSharedWith = sharedWith[i]
+            if (!ObjectId.isValid(userSharedWith)) throw 'Invalid ID';
+            if (!allUserIDs.includes(userSharedWith)) throw 'Could not find user'
+            sharedWith[i] = userSharedWith
+
+        }
+    }
 
     if (typeof title!== 'string' || title.length <1 || title.length>30) throw 'Title should be a string between 1 and 30 characters'
     if (typeof description !== 'string' || description.length <1 || description.length>300) throw 'Description should be a string between 1 and 300 characters'
@@ -44,7 +77,9 @@ export const createEvent = async (
         location,
         reminder,
         isRecurring,
-        recurrenceFrequency}
+        recurrenceFrequency,
+        sharedWith,
+        createdBy}
 
         const insertInfo = await event.insertOne(newEvent);
 
@@ -82,14 +117,14 @@ export const getEventById = async (id) => {
 
 }
 
-export const updateEventInDb = async (title,
+export const updateEventInDb = async (id, title,
     description,
     startTime,
     endTime,
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency, userId) => {if (!title) throw 'Title not provided'
+    recurrenceFrequency, sharedWith) => {if (!title) throw 'Title not provided'
         if (!description) throw 'not provided'
         if (!startTime) throw 'not provided'
         if (!endTime) throw 'not provided'
@@ -105,6 +140,22 @@ export const updateEventInDb = async (title,
         let currentTime = new Date()
         if (startTime > endTime || startTime < currentTime) throw 'Start time should be before end time , and cannot be before current time'
         if (typeof location !== 'string' || location.length <1 || location.length>30) throw 'Location should be a string between 1 and 30 characters'
+
+        if (!sharedWith) throw 'sharedWith not provided'
+
+
+        if (Array.isArray(sharedWith)) throw 'sharedWith must be an array'
+
+        if(sharedWith.length>0)
+        {
+            for (let i = 0; i < sharedWith.length; i++) {
+                let userSharedWith = sharedWith[i]
+                if (!ObjectId.isValid(userSharedWith)) throw 'Invalid ID';
+                if (!allUserIDs.includes(userSharedWith)) throw 'Could not find user'
+                sharedWith[i] = userSharedWith
+    
+            }
+        }
         
         // INSERT THE VALIDATION FOR RECURRENCE FREQUENCY
     
@@ -117,9 +168,9 @@ export const updateEventInDb = async (title,
             location,
             reminder,
             isRecurring,
-            recurrenceFrequency}
+            recurrenceFrequency, sharedWith}
         
-            const idno = ObjectId.createFromHexString(userId);
+            const idno = ObjectId.createFromHexString(id);
 
             const updatedEvent = event.findOneAndUpdate(
   
@@ -146,6 +197,8 @@ export const removeEventFromDb = async (id) => {
     if (id.length === 0) throw 'ID cannot be empty';
         
     if (!ObjectId.isValid(id)) throw 'Invalid ID';
+
+    //TODO : REMOVE EVENT ID FROM CREATED BY AND SHAREDWITH
         
     const event = await events();
       
@@ -156,5 +209,7 @@ export const removeEventFromDb = async (id) => {
     if (!deletedEvent) throw 'Could not find band';
       
     return 'The event ' + deletedEvent.title + ' has been deleted';
+
+    
 
 }
