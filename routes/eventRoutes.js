@@ -43,7 +43,7 @@ router.post('/edit/:id', async (req, res) => {
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency, userId } = req.body;
+    recurrenceFrequency, sharedWith, userId } = req.body;
 
     // Fetch the existing event
     const event = await getEventById(id);
