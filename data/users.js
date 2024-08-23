@@ -81,7 +81,9 @@ export const getUserById = async (userId) => {
   const usersCollection = await users();
   console.log("Fetching user by ID:", userId);
 
-  const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+  let id = ObjectId.createFromHexString(userId)
+
+  const user = await usersCollection.findOne({ _id: id });
 
   if (!user) {
     console.log("No user found with ID:", userId);
@@ -100,7 +102,8 @@ export const getAllUsersWithSchedules = async () => {
 
   for (let user of usersList) {
     if (user.schedule) {
-      const schedule = await schedulesCollection.findOne({ _id: new ObjectId(user.schedule) });
+      let id = ObjectId.createFromHexString(user.schedule)
+      const schedule = await schedulesCollection.findOne({ _id: id });
       
       if (schedule) {
         // Convert events to FullCalendar format
