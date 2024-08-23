@@ -44,7 +44,9 @@ export const getScheduleById = async (id) => {
 
   if(!ObjectId.isValid(id)) throw 'Not a valid ID';
 
-  const schedule = await schedulesCollection.findOne({ _id: new ObjectId(id) });
+  let scheduleId = ObjectId.createFromHexString(id)
+
+  const schedule = await schedulesCollection.findOne({ _id: scheduleId });
 
   if (!schedule) {
     throw new Error('Schedule not found');
