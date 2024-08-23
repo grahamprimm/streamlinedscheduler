@@ -42,7 +42,8 @@ export const registerUser = async (
     timezone,
     role,
     schedule: newScheduleId,
-    eventsCreated: []
+    eventsCreated: [],
+    eventsShared: []
   };
 
   const insertResult = await usersCollection.insertOne(newUser);
@@ -72,9 +73,9 @@ export const loginUser = async (email, password) => {
     throw new Error('Either the email or password is invalid');
   }
 
-  const { firstName, lastName, mail, timezone, schedule, role, eventsCreated  } = user;
+  const { firstName, lastName, mail, timezone, schedule, role, eventsCreated, eventsShared  } = user;
 
-  return { firstName, lastName, mail, timezone, schedule, role, eventsCreated };
+  return { firstName, lastName, mail, timezone, schedule, role, eventsCreated, eventsShared };
 };
 
 export const getUserById = async (userId) => {
