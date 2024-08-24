@@ -2,6 +2,7 @@ import {events, users} from '../config/mongoCollections.js'
 import { ObjectId } from 'mongodb';
 import {isValidEmail} from '../helpers.js'
 import {getAllUsersWithSchedules} from './users.js'
+import { deleteEventFromSchedule } from './schedule.js';
 
 export const createEvent = async (
     title,
@@ -198,7 +199,7 @@ export const deleteEventFromDb = async (id) => {
         
     if (!ObjectId.isValid(id)) throw 'Invalid ID';
 
-    //TODO : REMOVE EVENT ID FROM CREATED BY AND SHAREDWITH
+    //TODO : REMOVE EVENT ID FROM SHAREDWITH
         
     const event = await events();
       
@@ -206,20 +207,25 @@ export const deleteEventFromDb = async (id) => {
       
     const deletedEvent = await event.findOneAndDelete({_id: idno});
 
+    if (!deletedEvent) throw 'Could not find event';
+    
     let userId = deletedEvent.createdBy
 
     let user = await users()
 
     userId = ObjectId.createFromHexString(userId)
 
+    let eventCreator = await user.findOne({_id : userId})
+
+    let schedule = eventCreator.schedule
+
     let updatedUser = await user.updateOne({_id : userId},{$pull : {eventsCreated : id}})
 
     if(!updatedUser) throw 'Event could not be removed from user events created'
       
-    if (!deletedEvent) throw 'Could not find band';
+    await deleteEventFromSchedule(schedule)
       
     return 'The event ' + deletedEvent.title + ' has been deleted';
 
-    
 
 }
