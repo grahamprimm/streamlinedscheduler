@@ -9,8 +9,8 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   const schedulesCollection = await schedules();
 
   //find user's schedule
-  let userId = ObjectId.createFromHexString(validUserId)
-  let eventId = ObjectId.createFromHexString(validEventId)
+  userId = ObjectId.createFromHexString(validUserId)
+  eventId = ObjectId.createFromHexString(validEventId)
   const schedule = await schedulesCollection.findOne({userId: userId})
 
   if(!schedule){
@@ -26,6 +26,9 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   if (updateResult.modifiedCount === 0) {
       throw new Error('Could not add event to the schedule');
   }
+
+  userId = userId.toString()
+  eventId = eventId.toString()
 
   return `Event ${eventId} has been added to the schedule for user ${userId}`;
 };
