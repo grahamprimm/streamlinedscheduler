@@ -104,12 +104,20 @@ export const getScheduleById = async (id) => {
 }
 
 export const deleteEventFromSchedule = async(userId, eventId) => {
-  const validUserId = isValidUserId(userId)
-  const validEventId = isValidEventId(eventId)
+  userId = isValidUserId(userId)
+  eventId = isValidEventId(eventId)
   
   const schedulesCollection = await schedules();
 
-  const schedule = await schedulesCollection.findOne({ userId: ObjectId(validUserId) });
+  //find user's schedule
+  //userId = ObjectId.createFromHexString(validUserId)
+  //eventId = ObjectId.createFromHexString(validEventId)
+
+  const user = await getUserById(userId)
+
+  const scheduleId = ObjectId.createFromHexString(user.schedule)
+
+  const schedule = await schedulesCollection.findOne({_id: scheduleId})
 
   if (!schedule) {
     throw new Error('No schedule found for the user');
@@ -117,8 +125,8 @@ export const deleteEventFromSchedule = async(userId, eventId) => {
 
   //removal logic
   const updateResult = await schedulesCollection.updateOne(
-    { userId: ObjectId(validUserId) },
-    { $pull: { events: ObjectId(validEventId) } }
+    { _id : scheduleId },
+    { $pull: { events: eventId } }
   );
 
   if (updateResult.modifiedCount === 0) {
