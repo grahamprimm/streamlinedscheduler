@@ -20,9 +20,12 @@ router.get('/create-event', async (req, res) => {
 router.post('/create-event', async (req, res) => {
   try {
     const { title,description, startTime, endTime, location, reminder, recurrenceFrequency} = req.body;
+    startTime = new Date(startTime)
+    endTime = new Date(endTime)
     const userId = req.session.user.userId
     const isRecurring = req.body.isRecurring === 'on';
-    let sharedWith
+    console.log(req.body.sharedWith)
+    let sharedWith = []
     if (req.body.sharedWith) sharedWith = req.body.sharedWith
     const { event } = await createEvent(title, userId, 
     description,
