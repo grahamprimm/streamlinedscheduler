@@ -47,10 +47,12 @@ router.post('/create-event', async (req, res) => {
     // Create a notification for the user
     //await createNotification(userId, 'Event Created', `Event "${title}" has been created.`);
 
-    res.status(201).json({ success: true, event });
+    res.status(201).redirect('/schedule');
   } catch (e) {
     console.error("Error adding event:", e);
-    res.status(400).json({ success: false, message: e.message });
+    res.status(400).render('create-event', {title : 'Create Event', error : e//.message
+
+    });
   }
 });
 
