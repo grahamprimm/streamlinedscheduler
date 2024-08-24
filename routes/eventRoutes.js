@@ -37,7 +37,8 @@ router.post('/create-event', async (req, res) => {
     recurrenceFrequency, sharedWith);
 
     // Add event to user's schedule
-    await addEventToScheduleByUserId(userId, event._id);
+    let eventId = event._id.toString()
+    await addEventToScheduleByUserId(userId, eventId);
 
     // Create a notification for the user
     //await createNotification(userId, 'Event Created', `Event "${title}" has been created.`);
