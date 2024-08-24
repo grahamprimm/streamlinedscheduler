@@ -69,7 +69,7 @@ router.get('/logout', (req, res) => {
 
 
 router.get('/admin', async (req, res) => {
-  const { firstName, lastName, timezone } = req.session.user;
+  const { firstName, lastName, timezone} = req.session.user;
 
   let currentTime;
   if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
@@ -93,7 +93,7 @@ router.get('/admin', async (req, res) => {
 
 router.get('/schedule', async (req, res) => {
   try {
-    const { firstName, lastName, email, role, timezone, schedule, eventsCreated, eventsShared } = req.session.user;
+    const { firstName, lastName, email, role, timezone, schedule, eventsCreated, eventsShared} = req.session.user;
 
     if (!schedule) {
       return res.status(400).render('error', { message: 'No schedule found for this user.' });
