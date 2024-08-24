@@ -1,4 +1,4 @@
-import {events} from '../config/mongoCollections.js'
+import {events, users} from '../config/mongoCollections.js'
 import { ObjectId } from 'mongodb';
 import {isValidEmail} from '../helpers.js'
 import {getAllUsersWithSchedules} from './users.js'
@@ -205,6 +205,16 @@ export const deleteEventFromDb = async (id) => {
     const idno = ObjectId.createFromHexString(id);
       
     const deletedEvent = await event.findOneAndDelete({_id: idno});
+
+    let userId = deletedEvent.createdBy
+
+    let user = await users()
+
+    userId = ObjectId.createFromHexString(userId)
+
+    let updatedUser = await user.updateOne({_id : userId},{$pull : {eventsCreated : id}})
+
+    if(!updatedUser) throw 'Event could not be removed from user events created'
       
     if (!deletedEvent) throw 'Could not find band';
       
