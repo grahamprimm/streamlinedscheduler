@@ -103,7 +103,7 @@ export const getEventById = async (id) => {
       
     if (!ObjectId.isValid(id)) throw 'Invalid ID';
       
-    const events = await events();
+    const event = await events();
       
     const idno = ObjectId.createFromHexString(id);
       
