@@ -1,4 +1,4 @@
-import { schedules } from '../config/mongoCollections.js';
+import { schedules, users } from '../config/mongoCollections.js';
 import { isValidUserId, isValidEventId } from '../helpers.js';
 import { ObjectId } from 'mongodb';
 import { getUserById } from './users.js';
@@ -13,7 +13,7 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   //userId = ObjectId.createFromHexString(validUserId)
   //eventId = ObjectId.createFromHexString(validEventId)
 
-  const user = await getUserById(userId)
+  let user = await getUserById(userId)
 
   const scheduleId = ObjectId.createFromHexString(user.schedule)
 
@@ -34,6 +34,8 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   }
 
   userId = ObjectId.createFromHexString(userId)
+
+  user = await users()
 
   await user.updateOne({_id : userId},{$push : {eventsCreated : eventId}})
 
