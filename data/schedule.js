@@ -1,17 +1,23 @@
 import { schedules } from '../config/mongoCollections.js';
 import { isValidUserId, isValidEventId } from '../helpers.js';
 import { ObjectId } from 'mongodb';
+import { getUserById } from './users.js';
 
 export const addEventToScheduleByUserId = async (userId, eventId) => {
-  const validUserId = isValidUserId(userId)
-  const validEventId = isValidEventId(eventId)
+  userId = isValidUserId(userId)
+  eventId = isValidEventId(eventId)
   
   const schedulesCollection = await schedules();
 
   //find user's schedule
-  userId = ObjectId.createFromHexString(validUserId)
-  eventId = ObjectId.createFromHexString(validEventId)
-  const schedule = await schedulesCollection.findOne({userId: userId})
+  //userId = ObjectId.createFromHexString(validUserId)
+  //eventId = ObjectId.createFromHexString(validEventId)
+
+  const user = await getUserById(userId)
+
+  const scheduleId = ObjectId.createFromHexString(user.schedule)
+
+  const schedule = await schedulesCollection.findOne({_id: scheduleId})
 
   if(!schedule){
     throw new Error(`No schedule found for user`)
@@ -19,16 +25,13 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
 
   // add the eventId to the schedule's events array
   const updateResult = await schedulesCollection.updateOne(
-    { userId: userId },
+    { _id: scheduleId },
     { $push: { events: eventId } }
   );
 
   if (updateResult.modifiedCount === 0) {
       throw new Error('Could not add event to the schedule');
   }
-
-  userId = userId.toString()
-  eventId = eventId.toString()
 
   return `Event ${eventId} has been added to the schedule for user ${userId}`;
 };
