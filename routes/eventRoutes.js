@@ -27,7 +27,7 @@ router.post('/create-event', async (req, res) => {
     console.log(req.body.sharedWith)
     let sharedWith = []
     if (req.body.sharedWith) sharedWith = req.body.sharedWith
-    const { event } = await createEvent(title, userId, 
+    const event = await createEvent(title, userId, 
     description,
     startTime,
     endTime,
@@ -37,7 +37,11 @@ router.post('/create-event', async (req, res) => {
     recurrenceFrequency, sharedWith);
 
     // Add event to user's schedule
+    
+    console.log(event)
+
     let eventId = event._id.toString()
+
     await addEventToScheduleByUserId(userId, eventId);
 
     // Create a notification for the user
