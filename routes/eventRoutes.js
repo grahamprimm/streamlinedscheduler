@@ -19,7 +19,7 @@ router.get('/create-event', async (req, res) => {
 // Route to create a new event
 router.post('/create-event', async (req, res) => {
   try {
-    const { title,description, startTime, endTime, location, reminder, recurrenceFrequency} = req.body;
+    let { title,description, startTime, endTime, location, reminder, recurrenceFrequency} = req.body;
     startTime = new Date(startTime)
     endTime = new Date(endTime)
     const userId = req.session.user.userId
