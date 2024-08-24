@@ -75,7 +75,9 @@ export const loginUser = async (email, password) => {
 
   const { firstName, lastName, mail, timezone, schedule, role, eventsCreated, eventsShared  } = user;
 
-  return { firstName, lastName, mail, timezone, schedule, role, eventsCreated, eventsShared };
+  let userId = user._id.toString()
+
+  return { firstName, lastName, mail, timezone, schedule, role, eventsCreated, eventsShared, userId };
 };
 
 export const getUserById = async (userId) => {
