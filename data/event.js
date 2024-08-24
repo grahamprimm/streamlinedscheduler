@@ -87,7 +87,7 @@ export const createEvent = async (
           
         const newId = insertInfo.insertedId.toString();
           
-        const insertedEvent = await get(newId);
+        const insertedEvent = await getEventById(newId);
           
         return insertedEvent;
 
