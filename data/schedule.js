@@ -33,6 +33,12 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
       throw new Error('Could not add event to the schedule');
   }
 
+  userId = ObjectId.createFromHexString(userId)
+
+  await user.updateOne({_id : userId},{$push : {eventsCreated : eventId}})
+
+  userId = userId.toString()
+
   return `Event ${eventId} has been added to the schedule for user ${userId}`;
 };
 
