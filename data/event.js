@@ -37,7 +37,7 @@ export const createEvent = async (
     if (!location) throw 'not provided'
     if (!reminder) throw 'not provided'
     if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read'
-    if (!recurrenceFrequency) throw 'not provided'
+    if (isRecurring) {if (!recurrenceFrequency) throw 'Recurrence frequency not provided'; recurrenceFrequency = 'N/A'}
     if (!sharedWith) throw 'sharedWith not provided'
     if (!createdBy) throw 'Event creator not provided'
 
@@ -46,7 +46,7 @@ export const createEvent = async (
     if(!allUserIDs.includes(createdBy)) throw 'Invalid event creator'
 
 
-    if (Array.isArray(sharedWith)) throw 'sharedWith must be an array'
+    if (!Array.isArray(sharedWith)) throw 'sharedWith must be an array'
 
     if(sharedWith.length>0)
     {
