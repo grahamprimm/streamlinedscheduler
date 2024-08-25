@@ -26,26 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var allUsersEvents = [];
   {{#each users}}
-  var userEvents = [];
-
-  // Add created events
-  {{#each this.createdEvents}}
-  userEvents.push({
-    title: "{{this.title}}",
-    start: new Date("{{this.startTime}}"),  // Convert startTime to Date object
-    end: new Date("{{this.endTime}}")       // Convert endTime to Date object
-  });
-  {{/each}}
-
-  // Add shared events
-  {{#each this.sharedEvents}}
-  userEvents.push({
-    title: "{{this.title}}",
-    start: new Date("{{this.startTime}}"),  // Convert startTime to Date object
-    end: new Date("{{this.endTime}}")       // Convert endTime to Date object
-  });
-  {{/each}}
-
+  var userEvents = {{{json this.allEvents}}};
   allUsersEvents.push(userEvents);
   {{/each}}
 

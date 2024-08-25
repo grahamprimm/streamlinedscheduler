@@ -100,31 +100,28 @@ export const getUserById = async (userId) => {
 export const getAllUsersWithSchedules = async () => {
   const usersCollection = await users();
   const eventsCollection = await events();
+  const schedulesCollection = await schedules();
 
   const usersWithSchedules = await usersCollection.find({}).toArray();
 
   for (let user of usersWithSchedules) {
-    const createdEventPromises = user.eventsCreated.map(eventId => 
+    // Fetch the user's schedule
+    const schedule = await schedulesCollection.findOne({ _id: new ObjectId(user.schedule) });
+    
+    // Fetch all events in the schedule
+    const eventPromises = schedule.events.map(eventId => 
       eventsCollection.findOne({ _id: new ObjectId(eventId) })
     );
-    const sharedEventPromises = user.eventsShared.map(eventId => 
-      eventsCollection.findOne({ _id: new ObjectId(eventId) })
-    );
+    const allEvents = await Promise.all(eventPromises);
 
-    const createdEvents = await Promise.all(createdEventPromises);
-    const sharedEvents = await Promise.all(sharedEventPromises);
-
-    user.createdEvents = createdEvents;
-    user.sharedEvents = sharedEvents;
-
-    const scheduleId = user.schedule;
-    if (scheduleId) {
-      const schedule = await getScheduleById(scheduleId);
-      user.schedule = schedule;
-    }
+    // Add these events to the user object
+    user.allEvents = allEvents.map(event => ({
+      title: event.title,
+      start: event.startTime.toISOString(),
+      end: event.endTime.toISOString()
+    }));
   }
 
-  console.log("Users with schedules and events:", JSON.stringify(usersWithSchedules, null, 2));
   return usersWithSchedules;
 };
 
