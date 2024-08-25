@@ -107,6 +107,8 @@ router.get('/schedule', async (req, res) => {
 
     const fullSchedule = await getScheduleById(schedule);
 
+    
+
     res.render('schedule', {
       firstName,
       lastName,
@@ -116,7 +118,8 @@ router.get('/schedule', async (req, res) => {
       timezone,
       schedule: fullSchedule,
       eventsCreated,
-      eventsShared
+      eventsShared,
+      userId : req.session.user.userId
     });
 
   } catch (e) {
