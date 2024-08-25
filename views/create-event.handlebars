@@ -4,7 +4,9 @@
   {{#if error}}
     <div class="error">{{error}}</div>
   {{/if}}
-
+  <form action = "/schedule" >
+  <button>Go back to schedule</button>
+  </form>
   <form action="/create-event" method="POST">
     <div>
       <label for="title">Event Title:</label>
@@ -47,11 +49,26 @@
     </div>
     
     <div>
-      <label for="sharedWith">Share Event With (comma-separated user IDs):</label>
-      <input type="text" id="sharedWith" name="sharedWith">
+      <label for="sharedWith">Share Event With (You cannot remove the event from someone else's schedule once you have shared it with them.):</label>
+      <div id="sharedWithContainer">
+        <input type="email" name="sharedWith[]" placeholder="Enter email">
+      </div>
+      <button type="button" id="addEmail">Add another email</button>
     </div>
     
     <button type="submit">Create Event</button>
   </form>
+
+  <script>
+    document.getElementById('addEmail').addEventListener('click', function() {
+      
+      let newInput = document.createElement('input');
+      newInput.type = 'email';
+      newInput.name = 'sharedWith[]';
+      newInput.placeholder = 'Enter email';
+
+      document.getElementById('sharedWithContainer').appendChild(newInput);
+    });
+  </script>
 
 </body>
