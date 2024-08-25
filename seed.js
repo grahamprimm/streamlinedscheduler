@@ -33,11 +33,11 @@ const seedDatabase = async () => {
     const insertedSchedules = await schedulesCollection.insertMany(scheduleDocs);
 
     // Create users with hashed passwords
-    const hashedPassword1 = await bcrypt.hash('password1', 16);
-    const hashedPassword2 = await bcrypt.hash('password2', 16);
-    const hashedPassword3 = await bcrypt.hash('password3', 16);
-    const hashedPassword4 = await bcrypt.hash('password4', 16);
-    const hashedPassword5 = await bcrypt.hash('password5', 16);
+    const hashedPassword1 = await bcrypt.hash('P@assword1', 16);
+    const hashedPassword2 = await bcrypt.hash('P@ssword2', 16);
+    const hashedPassword3 = await bcrypt.hash('P@ssword3', 16);
+    const hashedPassword4 = await bcrypt.hash('P@ssword4', 16);
+    const hashedPassword5 = await bcrypt.hash('P@ssword5', 16);
 
     const userDocs = [
       {

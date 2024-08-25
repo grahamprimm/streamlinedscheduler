@@ -9,13 +9,8 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   
   const schedulesCollection = await schedules();
 
-  //find user's schedule
-  //userId = ObjectId.createFromHexString(validUserId)
-  //eventId = ObjectId.createFromHexString(validEventId)
-
   let user = await getUserById(userId)
-  const scheduleId = ObjectId.createFromHexString(user.schedule)
-  const schedule = await schedulesCollection.findOne({_id: scheduleId})
+  const schedule = await schedulesCollection.findOne({_id: new ObjectId(user.schedule)});
 
   if(!schedule){
     throw new Error(`No schedule found for user`)
@@ -23,7 +18,7 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
 
   // add the eventId to the schedule's events array
   const updateResult = await schedulesCollection.updateOne(
-    { _id: scheduleId },
+    { _id: new ObjectId(user.schedule) },
     { $push: { events: eventId } }
   );
 
@@ -98,10 +93,6 @@ export const deleteEventFromSchedule = async(userId, eventId) => {
   eventId = isValidEventId(eventId)
   
   const schedulesCollection = await schedules();
-
-  //find user's schedule
-  //userId = ObjectId.createFromHexString(validUserId)
-  //eventId = ObjectId.createFromHexString(validEventId)
 
   const user = await getUserById(userId)
 
