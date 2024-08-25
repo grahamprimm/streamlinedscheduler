@@ -22,9 +22,10 @@ router.get('/create-event', async (req, res) => {
 // Route to create a new event
 router.post('/create-event', async (req, res) => {
   try {
-    let { title,description, startTime, endTime, location, reminder, recurrenceFrequency} = req.body;
+    let { title,description, startTime, endTime, location, reminder, recurrenceFrequency, numberOfOccurrences} = req.body;
     startTime = new Date(startTime)
     endTime = new Date(endTime)
+    numberOfOccurrences = parseInt(numberOfOccurrences, 10);
     const userId = req.session.user.userId
     
     const isRecurring = req.body.isRecurring === 'on';
@@ -39,7 +40,9 @@ router.post('/create-event', async (req, res) => {
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency, sharedWith);
+    recurrenceFrequency,
+    sharedWith,
+    numberOfOccurrences);
 
     // Add event to user's schedule
     

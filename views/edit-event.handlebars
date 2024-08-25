@@ -46,8 +46,12 @@
     </div>
     
     <div>
-      <label for="recurrenceFrequency">Recurrence Frequency (e.g., weekly, monthly):</label>
-      <input type="text" id="recurrenceFrequency" name="recurrenceFrequency" value={{recurrenceFrequency}}>
+      <label for="recurrenceFrequency">Recurrence Frequency:</label>
+      <select id="recurrenceFrequency" name="recurrenceFrequency">
+        <option value="">Select Frequency</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
     </div>
     
     <div>
