@@ -10,8 +10,7 @@
     <button class="collapsible">{{this.firstName}} {{this.lastName}}'s Schedule</button>
     <div class="content">
       <p>Email: {{this.email}}</p>
-      <p>Created Events: {{json this.createdEvents}}</p>
-      <p>Shared Events: {{json this.sharedEvents}}</p>
+      <p>Timezone: {{this.timezone}}</p>
       <div id="calendar-{{@index}}" class="fc"></div> <!-- Add class "fc" for easier selection -->
     </div>
   </div>
@@ -61,7 +60,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'listWeek',
       height: 'auto',
-      events: events
+      events: events,
+      eventContent: function(info) {
+    return {
+      html: 'Title : ' + info.event.title + '<br>Description : ' + info.event.extendedProps.description + 
+            '<br>Location : ' + info.event.extendedProps.location + 
+            '<br>Reminder : ' + info.event.extendedProps.reminder + ' minutes prior'
+    };
+  }
     });
     calendar.render();
   }
