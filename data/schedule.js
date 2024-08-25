@@ -92,33 +92,44 @@ export const getScheduleById = async (id) => {
     return schedule;
 };
 
-export const deleteEventFromSchedule = async(userId, eventId) => {
-  userId = isValidUserId(userId)
-  eventId = isValidEventId(eventId)
-  
-  const schedulesCollection = await schedules();
+export const deleteEventFromSchedule = async (userId, eventId) => {
+    // Validate userId and eventId
+    userId = isValidUserId(userId);
+    eventId = isValidEventId(eventId);
 
-  const user = await getUserById(userId)
+    const schedulesCollection = await schedules();
 
-  const scheduleId = ObjectId.createFromHexString(user.schedule)
+    const user = await getUserById(userId);
 
-  const schedule = await schedulesCollection.findOne({_id: scheduleId})
+    // Validate if the user's schedule ID is a valid ObjectId
+    if (!ObjectId.isValid(user.schedule)) {
+        throw new Error('Invalid schedule ID format');
+    }
 
-  if (!schedule) {
-    throw new Error('No schedule found for the user');
-  }
+    const scheduleId = new ObjectId(user.schedule);
 
-  //removal logic
-  const updateResult = await schedulesCollection.updateOne(
-    { _id : scheduleId },
-    { $pull: { events: eventId } }
-  );
+    const schedule = await schedulesCollection.findOne({ _id: scheduleId });
 
-  if (updateResult.modifiedCount === 0) {
-    throw new Error(`Could not remove event ${eventId} from the schedule`);
-  }
+    if (!schedule) {
+        throw new Error('No schedule found for the user');
+    }
 
-  return `Event ${eventId} has been removed from the schedule for user ${userId}`;
+    // Validate if the eventId is a valid ObjectId
+    if (!ObjectId.isValid(eventId)) {
+        throw new Error('Invalid event ID format');
+    }
+
+    const updateResult = await schedulesCollection.updateOne(
+        { _id: scheduleId },
+        { $pull: { events: new ObjectId(eventId) } }  // Convert eventId to ObjectId before pulling
+    );
+
+    // console.log(updateResult);
+    // if (updateResult.modifiedCount === 0) {
+    //     throw new Error(`Could not remove event ${eventId} from the schedule`);
+    // }
+
+    return `Event ${eventId} has been removed from the schedule for user ${userId}`;
 };
 
 export const updateScheduleEvents = async (userId, updatedEvent) => {

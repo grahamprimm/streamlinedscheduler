@@ -1,7 +1,7 @@
 import express from 'express';
 import { createEvent, getEventById, updateEventInDb, deleteEventFromDb } from '../data/event.js';
-import { updateScheduleEvents, deleteEventFromSchedule, addEventToScheduleByUserId } from '../data/schedule.js';
-import { getIdFromEmail } from '../data/users.js';
+import { deleteEventFromSchedule, addEventToScheduleByUserId } from '../data/schedule.js';
+import { createNotification } from '../data/notification.js';
 import { users } from '../config/mongoCollections.js';
 
 //import { createNotification } from '../data/notification.js';
@@ -145,9 +145,6 @@ router.post('/edit/:id', async (req, res) => {
         if (isNaN(endDate.getTime())) {
             throw new Error('End time is not a valid Date object');
         }
-
-        // Parse the sharedWith field into an array
-        // let sharedWithArray = sharedWith.split(',').map(email => email.trim());
 
         // Now pass the valid Date objects to the update function
         const updatedEvent = await updateEventInDb(

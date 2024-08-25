@@ -76,23 +76,23 @@ Here are the login details for the users created by the seeding script:
 1. **Admin User:**
 
    - Email: `admin@domain.com`
-   - Password: `password1`
+   - Password: `P@ssword1`
 2. **User 1:**
 
    - Email: `user1@domain.com`
-   - Password: `password2`
+   - Password: `P@ssword2`
 3. **User 2:**
 
    - Email: `user2@domain.com`
-   - Password: `password3`
+   - Password: `P@ssword3`
 4. **User 3:**
 
    - Email: `user3@domain.com`
-   - Password: `password4`
+   - Password: `P@ssword4`
 5. **User 4:**
 
    - Email: `user4@domain.com`
-   - Password: `password5`
+   - Password: `P@ssword5`
 
 ---
 

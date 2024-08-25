@@ -41,7 +41,10 @@
         if (isCreator) {
           buttons = '<button onclick="window.location.href=\'/edit/' + info.event.extendedProps.eventId + '\'">Edit</button>' +
                     '<button onclick="if(confirm(\'Are you sure you want to delete this event from the database?\')) { ' +
-                    'fetch(\'/delete/' + info.event.extendedProps.eventId + '\', { method: \'POST\' })' +
+                    'fetch(\'/delete/' + info.event.extendedProps.eventId + '\', { ' +
+                    'method: \'POST\', ' +
+                    'headers: { \'Content-Type\': \'application/json\' }, ' +
+                    'body: JSON.stringify({ userId: \'' + userId + '\' }) })' +
                     '.then(() => location.reload()); }">Delete from DB</button>';
         } else {
           buttons = '<button onclick="if(confirm(\'Are you sure you want to remove this event from your schedule?\')) { ' +
