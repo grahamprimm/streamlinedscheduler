@@ -84,7 +84,10 @@ export const getScheduleById = async (id) => {
   schedule.events = populatedEvents.map(event => ({
     title: event.title,
     startTime: event.startTime.toISOString(),
-    endTime: event.endTime.toISOString()
+    endTime: event.endTime.toISOString(),
+    location : event.location,
+    description : event.description,
+    reminder : event.reminder
   }));
 
   return schedule;
