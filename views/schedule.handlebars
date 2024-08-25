@@ -27,6 +27,7 @@
       userId : "{{userId}}"
     });
     {{/each}}
+        console.log("Events:", events); // see if future events are included
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'list',

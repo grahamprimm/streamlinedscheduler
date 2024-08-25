@@ -15,7 +15,8 @@ export const createEvent = async (
     reminder,
     isRecurring,
     recurrenceFrequency,
-    sharedWith
+    sharedWith,
+    numberOfOccurrences
 ) => {
     const event = await events()
 
@@ -35,7 +36,7 @@ export const createEvent = async (
     if (!location) throw 'not provided'
     if (!reminder) throw 'not provided'
     if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read'
-    if (isRecurring) {if (!recurrenceFrequency) {throw 'Recurrence frequency not provided';} recurrenceFrequency = 'N/A'}
+    if (isRecurring && (!recurrenceFrequency || recurrenceFrequency === '')) throw 'Recurrence frequency not provided';
     if (!sharedWith) throw 'sharedWith not provided'
     if (!createdBy) throw 'Event creator not provided'
 
@@ -91,6 +92,10 @@ export const createEvent = async (
 
         const newId = insertInfo.insertedId.toString();
         const insertedEvent = await getEventById(newId);
+
+        if (isRecurring) {
+            await generateRecurringEvents(insertedEvent, newId, numberOfOccurrences);
+        }    
 
         return insertedEvent;
 }
@@ -261,3 +266,34 @@ export const deleteEventFromDb = async (id) => {
 
 
 }
+
+export const generateRecurringEvents = async (event, originalEventId, numberOfOccurrences) => {
+    const eventsCollection = await events();
+
+    if (!Number.isInteger(numberOfOccurrences) || numberOfOccurrences <= 0) {
+        throw new Error('Number of occurrences must be a positive integer.');
+    }
+
+    let currentStartTime = new Date(event.startTime);
+    let currentEndTime = new Date(event.endTime);
+
+    for (let i = 1; i <= numberOfOccurrences; i++) {
+        if (event.recurrenceFrequency === 'weekly') {
+            currentStartTime.setDate(currentStartTime.getDate() + 7);
+            currentEndTime.setDate(currentEndTime.getDate() + 7);
+        } else if (event.recurrenceFrequency === 'monthly') {
+            currentStartTime.setMonth(currentStartTime.getMonth() + 1);
+            currentEndTime.setMonth(currentEndTime.getMonth() + 1);
+        }
+
+        const recurringEvent = {
+            ...event,
+            _id: new ObjectId(),
+            startTime: new Date(currentStartTime),
+            endTime: new Date(currentEndTime),
+            originalEventId: new ObjectId(originalEventId) 
+        };
+
+        await eventsCollection.insertOne(recurringEvent);
+    }
+};
