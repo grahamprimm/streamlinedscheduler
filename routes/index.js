@@ -8,6 +8,9 @@ const constructorMethod = (app) => {
   app.use('/schedule', authMiddleware);
   app.use('/admin', adminAuthMiddleware);
   app.use('/logout', authMiddleware);
+  app.use('/create-event', authMiddleware);
+  app.use('/edit', authMiddleware);
+  app.use('/delete', authMiddleware);
 
   app.use('/', eventRoutes)
   app.use('/', authRoutes);
