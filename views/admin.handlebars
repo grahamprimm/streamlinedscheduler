@@ -5,16 +5,19 @@
 </div>
 
 <div id="userSchedules">
-    {{#each users}}
-    <div class="user-schedule">
-        <button class="collapsible">{{this.firstName}} {{this.lastName}}'s Schedule</button>
-        <div class="content">
-            <p>Email: {{this.email}}</p>
-            <div id="calendar-{{@index}}" class="fc"></div> <!-- Add class "fc" for easier selection -->
-        </div>
+  {{#each users}}
+  <div class="user-schedule">
+    <button class="collapsible">{{this.firstName}} {{this.lastName}}'s Schedule</button>
+    <div class="content">
+      <p>Email: {{this.email}}</p>
+      <p>Created Events: {{json this.createdEvents}}</p>
+      <p>Shared Events: {{json this.sharedEvents}}</p>
+      <div id="calendar-{{@index}}" class="fc"></div> <!-- Add class "fc" for easier selection -->
     </div>
-    {{/each}}
+  </div>
+  {{/each}}
 </div>
+
 
 <script src="/fullcalendar/index.global.js"></script>
 <script>
@@ -23,9 +26,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var allUsersEvents = [];
   {{#each users}}
-  allUsersEvents.push({
-    events: {{{json this.schedule.events}}}
+  var userEvents = [];
+
+  // Add created events
+  {{#each this.createdEvents}}
+  userEvents.push({
+    title: "{{this.title}}",
+    start: new Date("{{this.startTime}}"),  // Convert startTime to Date object
+    end: new Date("{{this.endTime}}")       // Convert endTime to Date object
   });
+  {{/each}}
+
+  // Add shared events
+  {{#each this.sharedEvents}}
+  userEvents.push({
+    title: "{{this.title}}",
+    start: new Date("{{this.startTime}}"),  // Convert startTime to Date object
+    end: new Date("{{this.endTime}}")       // Convert endTime to Date object
+  });
+  {{/each}}
+
+  allUsersEvents.push(userEvents);
   {{/each}}
 
   for (let i = 0; i < coll.length; i++) {
@@ -52,7 +73,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function initializeCalendar(calendarEl, index) {
-    var events = allUsersEvents[index]?.events || [];
+    var events = allUsersEvents[index] || [];
+
+    console.log("Initializing calendar with events:", events);  // Debugging output
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'listWeek',
@@ -63,3 +86,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+

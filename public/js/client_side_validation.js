@@ -28,7 +28,6 @@ const validateForm = (form) => {
   if (!timezone || (timezone !== 'EST' && timezone !== 'PST' && timezone !== 'CST')) {
     errors.push('Timezone must either be EST or PST or CST');
   }
-  // TODO: Add validation for timezone and email
 
   if(!email || ! /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
     errors.push('Email must be valid.');
@@ -137,31 +136,3 @@ const handleFormSubmission = (form, url) => {
       displayErrors(['A network error occurred: ' + error.message + '. Please try again later.']);
   });
 };
-
-/*
-// Ensure this script runs after the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM fully loaded and parsed");
-
-    const signupForm = document.getElementById('signup-form');
-    if (signupForm) {
-        console.log("Signup form found");
-        signupForm.addEventListener('submit', function (event) {
-            console.log("Signup form submitted");
-            if (!validateForm(this)) {
-                event.preventDefault();
-            } else {
-                event.preventDefault(); // Prevent default to handle submission via JS
-                handleFormSubmission(this, '/register');
-            }
-        });
-    }
-});
-*/
-
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-import { schedules, users } from '../config/mongoCollections.js';
+import { schedules, users, events } from '../config/mongoCollections.js';
 import { isValidUserId, isValidEventId } from '../helpers.js';
 import { ObjectId } from 'mongodb';
 import { getUserById } from './users.js';
@@ -14,9 +14,7 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   //eventId = ObjectId.createFromHexString(validEventId)
 
   let user = await getUserById(userId)
-
   const scheduleId = ObjectId.createFromHexString(user.schedule)
-
   const schedule = await schedulesCollection.findOne({_id: scheduleId})
 
   if(!schedule){
@@ -34,7 +32,6 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
   }
 
   userId = ObjectId.createFromHexString(userId)
-
   user = await users()
 
   await user.updateOne({_id : userId},{$push : {eventsCreated : eventId}})
@@ -46,24 +43,6 @@ export const addEventToScheduleByUserId = async (userId, eventId) => {
 
 export const createSchedule = async () => {
   const schedulesCollection = await schedules();
-  // let today = new Date();
-  // let tomorrow = new Date(today);
-  // tomorrow.setDate(tomorrow.getDate() + 1);
-  // tomorrow.setHours(8, 0, 0, 0);
-  // let tmrwEnd = tomorrow;
-  // tmrwEnd.setHours(9, 0, 0, 0);
-  
-  // const newSchedule = {
-  //   _id: new ObjectId(),
-  //   title: 'My Schedule',
-  //   events: [
-  //     {
-  //       title: 'Example Event',
-  //       start: tomorrow.toISOString(),
-  //       end: tmrwEnd.toISOString()
-  //     }
-  //   ]
-  // };
 
   const newSchedule = {
     _id: new ObjectId(),
@@ -84,26 +63,32 @@ export const createSchedule = async () => {
 
 export const getScheduleById = async (id) => {
   const schedulesCollection = await schedules();
+  const eventsCollection = await events();
 
-  if(!ObjectId.isValid(id)) throw 'Not a valid ID';
+  if (!ObjectId.isValid(id)) throw 'Not a valid ID';
 
-  let scheduleId = ObjectId.createFromHexString(id)
-
+  const scheduleId = new ObjectId(id);
   const schedule = await schedulesCollection.findOne({ _id: scheduleId });
 
   if (!schedule) {
     throw new Error('Schedule not found');
   }
 
-  // Convert events to FullCalendar format
-  schedule.events = schedule.events.map(event => ({
+  // Fetch events associated with the schedule asynchronously
+  const eventPromises = schedule.events.map(eventId => 
+    eventsCollection.findOne({ _id: new ObjectId(eventId) })
+  );
+  const populatedEvents = await Promise.all(eventPromises);
+
+  // Map the events to FullCalendar format
+  schedule.events = populatedEvents.map(event => ({
     title: event.title,
-    start: event.start,
-    end: event.end
+    startTime: event.startTime.toISOString(),
+    endTime: event.endTime.toISOString()
   }));
 
   return schedule;
-}
+};
 
 export const deleteEventFromSchedule = async(userId, eventId) => {
   userId = isValidUserId(userId)

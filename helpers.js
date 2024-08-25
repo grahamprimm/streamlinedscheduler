@@ -23,16 +23,11 @@ export const isValidPassword = (password) => {
 };
 
 export const isValidTimezone = (timezone) => {
-  // TODO: validate timezone
-  
   if (!timezone || ( timezone !== 'EST' && timezone !== 'PST' && timezone != 'CST' )) throw new Error('Timezone must either be EST or PST or CST')  
-  
   return timezone;
 };
 
 export const isValidEmail = (input, minLength, maxLength, field) => {
-  // TODO: validate email
-  
   if (typeof input !== 'string' || input.trim().length < minLength || input.trim().length > maxLength) {
     throw new Error(`${field} must be a string between ${minLength} and ${maxLength} characters.`);
   }

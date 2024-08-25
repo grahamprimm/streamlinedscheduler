@@ -28,7 +28,6 @@ router
       console.log(result);
       if (result.signupCompleted) {
         res.status(200).redirect('/login')
-        //return res.status(200).json({ success: true, message: "Registration successful! Redirecting to login...", redirectUrl: '/login' });
       } else {
         throw new Error('Internal Server Error');
       }
@@ -69,7 +68,7 @@ router.get('/logout', (req, res) => {
 
 
 router.get('/admin', async (req, res) => {
-  const { firstName, lastName, timezone} = req.session.user;
+  const { firstName, lastName, timezone } = req.session.user;
 
   let currentTime;
   if (timezone === 'CST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
@@ -77,19 +76,20 @@ router.get('/admin', async (req, res) => {
   if (timezone === 'PST') currentTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
 
   try {
-    const users = await getAllUsersWithSchedules();
+    const users = await getAllUsersWithSchedules();  // This should return users with their schedules and events populated
     res.render('admin', {
       firstName,
       lastName,
       currentTime,
       timezone,
-      users
+      users  // Pass the users and their schedules with events to the template
     });
   } catch (e) {
     console.error("Error retrieving users and schedules:", e);
     res.status(500).send('Error retrieving users and schedules.');
   }
 });
+
 
 router.get('/schedule', async (req, res) => {
   try {

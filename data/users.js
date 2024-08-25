@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
-import { users, schedules } from '../config/mongoCollections.js';
+import { users, schedules, events } from '../config/mongoCollections.js';
 import { isValidString, isValidPassword, isValidEmail, isValidTimezone, isValidRole } from '../helpers.js';
-import {createSchedule} from './schedule.js'
+import { createSchedule, getScheduleById } from './schedule.js'
 
 const saltRounds = 16;
 
@@ -59,7 +59,7 @@ export const registerUser = async (
 export const loginUser = async (email, password) => {
   const usersCollection = await users();
   
-  email = isValidEmail(email, 1, 256, 'Email').toLowerCase(); // TODO: validate email
+  email = isValidEmail(email, 1, 256, 'Email').toLowerCase();
   password = isValidPassword(password);
 
   const user = await usersCollection.findOne({ email });
@@ -99,31 +99,33 @@ export const getUserById = async (userId) => {
 
 export const getAllUsersWithSchedules = async () => {
   const usersCollection = await users();
-  const schedulesCollection = await schedules();
+  const eventsCollection = await events();
 
-  const usersList = await usersCollection.find({}).toArray();
+  const usersWithSchedules = await usersCollection.find({}).toArray();
 
-  for (let user of usersList) {
-    if (user.schedule) {
-      let id = ObjectId.createFromHexString(user.schedule)
-      const schedule = await schedulesCollection.findOne({ _id: id });
-      
-      if (schedule) {
-        // Convert events to FullCalendar format
-        schedule.events = schedule.events.map(event => ({
-          title: event.title,
-          start: event.start,
-          end: event.end
-        }));
-      }
-      
-      user.schedule = schedule || { events: [] };  // Attach the schedule to the user object
-    } else {
-      user.schedule = { events: [] };  // Handle users without a schedule
+  for (let user of usersWithSchedules) {
+    const createdEventPromises = user.eventsCreated.map(eventId => 
+      eventsCollection.findOne({ _id: new ObjectId(eventId) })
+    );
+    const sharedEventPromises = user.eventsShared.map(eventId => 
+      eventsCollection.findOne({ _id: new ObjectId(eventId) })
+    );
+
+    const createdEvents = await Promise.all(createdEventPromises);
+    const sharedEvents = await Promise.all(sharedEventPromises);
+
+    user.createdEvents = createdEvents;
+    user.sharedEvents = sharedEvents;
+
+    const scheduleId = user.schedule;
+    if (scheduleId) {
+      const schedule = await getScheduleById(scheduleId);
+      user.schedule = schedule;
     }
   }
 
-  return usersList;
+  console.log("Users with schedules and events:", JSON.stringify(usersWithSchedules, null, 2));
+  return usersWithSchedules;
 };
 
 export const getIdFromEmail = async (email) => {

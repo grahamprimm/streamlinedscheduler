@@ -15,14 +15,10 @@ export const createEvent = async (
     isRecurring,
     recurrenceFrequency,
     sharedWith
-) => 
-    
-{
-
+) => {
     const event = await events()
-    
-    let allUsers = await getAllUsersWithSchedules()
 
+    let allUsers = await getAllUsersWithSchedules()
     let allUserIDs = []
 
     for (let user of allUsers)
@@ -80,42 +76,34 @@ export const createEvent = async (
         isRecurring,
         recurrenceFrequency,
         sharedWith,
-        createdBy}
+        createdBy
+    }
 
         const insertInfo = await event.insertOne(newEvent);
 
         if (!insertInfo.acknowledged || !insertInfo.insertedId) throw 'Could not add band';
-          
-        const newId = insertInfo.insertedId.toString();
-          
-        const insertedEvent = await getEventById(newId);
-          
-        return insertedEvent;
 
+        const newId = insertInfo.insertedId.toString();
+        const insertedEvent = await getEventById(newId);
+
+        return insertedEvent;
 }
 
 export const getEventById = async (id) => {
 
     if (typeof id != 'string') throw 'ID must be a string';
-
     id = id.trim();
-      
     if (id.length === 0) throw 'ID cannot be empty';
-      
     if (!ObjectId.isValid(id)) throw 'Invalid ID';
-      
-    const event = await events();
-      
-    const idno = ObjectId.createFromHexString(id);
-      
-    const ev = await event.findOne({_id: idno});
-      
-    if (!ev) throw 'Could not find event';
-      
-    ev._id = idno.toString();
-      
-    return ev;
 
+    const event = await events();
+    const idno = ObjectId.createFromHexString(id);
+    const ev = await event.findOne({_id: idno});
+
+    if (!ev) throw 'Could not find event';
+    ev._id = idno.toString();
+
+    return ev;
 }
 
 export const updateEventInDb = async (id, title,
@@ -174,20 +162,14 @@ export const updateEventInDb = async (id, title,
             const idno = ObjectId.createFromHexString(id);
 
             const updatedEvent = event.findOneAndUpdate(
-  
                 {_id: idno},
                 {$set: updateInfo},
-                {returnDocument: 'after'}
-              
-              )
-              
-              if (!updatedEvent) throw 'Could not update band';
-              
-              updatedEvent._id = idno.toString();
-              
-              return updatedEvent;
-        
-        }
+                {returnDocument: 'after'})
+
+            if (!updatedEvent) throw 'Could not update band';
+            updatedEvent._id = idno.toString();
+            return updatedEvent;
+}
 
 export const deleteEventFromDb = async (id) => {
 
@@ -200,31 +182,23 @@ export const deleteEventFromDb = async (id) => {
     if (!ObjectId.isValid(id)) throw 'Invalid ID';
 
     //TODO : REMOVE EVENT ID FROM SHAREDWITH
-        
     const event = await events();
-      
     const idno = ObjectId.createFromHexString(id);
-      
     const deletedEvent = await event.findOneAndDelete({_id: idno});
 
     if (!deletedEvent) throw 'Could not find event';
     
     let userId = deletedEvent.createdBy
-
     let user = await users()
 
     userId = ObjectId.createFromHexString(userId)
 
     let eventCreator = await user.findOne({_id : userId})
-
     let schedule = eventCreator.schedule
-
     let updatedUser = await user.updateOne({_id : userId},{$pull : {eventsCreated : id}})
 
     if(!updatedUser) throw 'Event could not be removed from user events created'
-      
     await deleteEventFromSchedule(schedule)
-      
     return 'The event ' + deletedEvent.title + ' has been deleted';
 
 

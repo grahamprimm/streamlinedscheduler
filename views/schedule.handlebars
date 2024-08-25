@@ -4,7 +4,7 @@
 </div>
 
 <button id="create-event">Create an Event</button>
-<div id="calendar"></div> <!-- FullCalendar container -->
+<div id="calendar"></div>
 
 <script src='/fullcalendar/index.global.js'></script>
 <script>
@@ -16,8 +16,8 @@
     {{#each schedule.events}}
     events.push({
       title: "{{this.title}}",
-      start: "{{this.start}}",
-      end: "{{this.end}}"
+      start: "{{this.startTime}}",
+      end: "{{this.endTime}}"
     });
     {{/each}}
 
