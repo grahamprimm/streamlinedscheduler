@@ -1,6 +1,9 @@
 import express from 'express';
 import { createEvent, getEventById, updateEventInDb, deleteEventFromDb } from '../data/event.js';
 import { updateScheduleEvents, deleteEventFromSchedule, addEventToScheduleByUserId } from '../data/schedule.js';
+import { getIdFromEmail } from '../data/users.js';
+import { users } from '../config/mongoCollections.js';
+
 //import { createNotification } from '../data/notification.js';
 
 const router = express.Router();
@@ -9,7 +12,7 @@ const router = express.Router();
 router.get('/create-event', async (req, res) => {
   try {
     // Render the create event page
-    res.render('create-event', { title: 'Create Event' });
+    res.status(200).render('create-event', { title: 'Create Event' });
   } catch (e) {
     console.error("Error retrieving create-event page:", e);
     res.status(500).send('Error retrieving event creation page.');
@@ -23,10 +26,12 @@ router.post('/create-event', async (req, res) => {
     startTime = new Date(startTime)
     endTime = new Date(endTime)
     const userId = req.session.user.userId
+    
     const isRecurring = req.body.isRecurring === 'on';
     console.log(req.body.sharedWith)
-    let sharedWith = []
-    if (req.body.sharedWith) sharedWith = req.body.sharedWith
+    let sharedWith = req.body.sharedWith
+    sharedWith = sharedWith.map(element => element.trim())
+    sharedWith = sharedWith.filter(element => element !== '')
     const event = await createEvent(title, userId, 
     description,
     startTime,
@@ -44,6 +49,17 @@ router.post('/create-event', async (req, res) => {
 
     await addEventToScheduleByUserId(userId, eventId);
 
+    if (sharedWith.length > 0) {
+
+      for (let i = 0; i<sharedWith.length; i++)
+      {
+        await addEventToScheduleByUserId(sharedWith[i], eventId)
+        let userShared = await users()
+        await userShared.updateOne({email : sharedWith[i]},{$push : {eventShared : eventId}})
+      }
+
+    } 
+
     // Create a notification for the user
     //await createNotification(userId, 'Event Created', `Event "${title}" has been created.`);
 
@@ -56,6 +72,34 @@ router.post('/create-event', async (req, res) => {
   }
 });
 
+router.get('edit/:id', async (req, res) => {
+
+try{
+let id = req.params.id
+
+let event = await getEventById()
+
+let title = event.title
+let description = event.description
+let startTime = event.startTime
+let endTime = event.endTime
+let location = event.location
+let reminder = event.reminder
+let isRecurring = event.isRecurring
+let recurrenceFrequency = event.recurrenceFrequency
+let sharedWith = event.sharedWith
+
+
+
+res.status(200).render('edit-event', {id, title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith})
+
+}catch(e){
+  res.status(400).render('edit-event', {title : 'Edit Event', error : e//.message
+
+  })
+}
+
+})
 // Route to edit an existing event
 router.post('/edit/:id', async (req, res) => {
   try {
@@ -73,11 +117,34 @@ router.post('/edit/:id', async (req, res) => {
     const event = await getEventById(id);
 
     if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
+      return res.status(404).render('/schedule', {error : "Event not found"});
     }
+
+    sharedWith = sharedWith.map(element => element.trim())
+    sharedWith = sharedWith.filter(element => element !== '')
+
+    let origSharedWith = event.sharedWith
 
     // Update the event
     const updatedEvent = await updateEventInDb(id, title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith);
+
+    sharedWith = sharedWith.concat(origSharedWith)
+
+
+    sharedWith = [...new Set(sharedWith)]
+
+    if (sharedWith.length > 0) {
+
+      for (let i = 0; i<sharedWith.length; i++)
+      {
+        await addEventToScheduleByUserId(sharedWith[i], id)
+        let userShared = await users()
+        await userShared.updateOne({email : sharedWith[i]},{$push : {eventShared : id}})
+      }
+
+    } 
+
+    
 
     // Update the user's schedule
     await updateScheduleEvents(userId, updatedEvent);
@@ -109,7 +176,7 @@ router.post('/delete/:id', async (req, res) => {
     await deleteEventFromDb(id);
 
     // Remove the event from the user's schedule
-    await removeEventFromSchedule(userId, id);
+    await deleteEventFromSchedule(userId, id);
 
     // Create a notification for the user
     await createNotification(userId, 'Event Deleted', `Event "${event.title}" has been deleted.`);
