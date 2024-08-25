@@ -128,7 +128,7 @@ export const updateEventInDb = async (
     if (!location) throw 'Location not provided';
     if (!reminder) throw 'Reminder not provided';
     if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read';
-    if (!recurrenceFrequency) throw 'Recurrence frequency not provided';
+    if (isRecurring && !recurrenceFrequency) throw 'Recurrence frequency not provided';
 
     if (typeof title !== 'string' || title.length < 1 || title.length > 30) throw 'Title should be a string between 1 and 30 characters';
     if (typeof description !== 'string' || description.length < 1 || description.length > 300) throw 'Description should be a string between 1 and 300 characters';
@@ -138,6 +138,8 @@ export const updateEventInDb = async (
     if (startTime > endTime || startTime < currentTime) throw 'Start time should be before end time and cannot be before current time';
     if (typeof location !== 'string' || location.length < 1 || location.length > 30) throw 'Location should be a string between 1 and 30 characters';
 
+    // Processing sharedWith
+    if (!sharedWith) throw 'sharedWith not provided';
     if (typeof sharedWith === 'string') {
         try {
             sharedWith = JSON.parse(sharedWith).map(tag => tag.value);
@@ -145,8 +147,10 @@ export const updateEventInDb = async (
             throw 'Invalid format for sharedWith field';
         }
     }
-
     if (!Array.isArray(sharedWith)) throw 'sharedWith must be an array';
+
+    let allUsers = await getAllUsersWithSchedules();
+    let allUserIDs = allUsers.map(user => user._id.toString());
 
     if (sharedWith.length > 0) {
         sharedWith = sharedWith.map(email => {
