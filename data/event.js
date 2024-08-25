@@ -1,7 +1,7 @@
-import {events, users} from '../config/mongoCollections.js'
+import {events, users, schedules} from '../config/mongoCollections.js'
 import { ObjectId } from 'mongodb';
 import {isValidEmail} from '../helpers.js'
-import {getAllUsersWithSchedules} from './users.js'
+import {getAllUsersWithSchedules , getIdFromEmail} from './users.js'
 import { deleteEventFromSchedule } from './schedule.js';
 import { createNotification } from './notification.js';
 
@@ -35,9 +35,13 @@ export const createEvent = async (
     if (!location) throw 'not provided'
     if (!reminder) throw 'not provided'
     if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read'
-    if (isRecurring) {if (!recurrenceFrequency) throw 'Recurrence frequency not provided'; recurrenceFrequency = 'N/A'}
+    if (isRecurring) {if (!recurrenceFrequency) {throw 'Recurrence frequency not provided';} recurrenceFrequency = 'N/A'}
     if (!sharedWith) throw 'sharedWith not provided'
     if (!createdBy) throw 'Event creator not provided'
+
+    console.log(createdBy)
+    console.log(sharedWith)
+    console.log(sharedWith.length)
 
     if (!ObjectId.isValid(createdBy)) throw 'Invalid ID';
 
@@ -49,7 +53,8 @@ export const createEvent = async (
     if(sharedWith.length>0)
     {
         for (let i = 0; i < sharedWith.length; i++) {
-            let userSharedWith = sharedWith[i]
+            let userSharedWith = await getIdFromEmail(sharedWith[i])
+            if (userSharedWith === createdBy) throw 'You cannot add yourself to the list of shared users'
             if (!ObjectId.isValid(userSharedWith)) throw 'Invalid ID';
             if (!allUserIDs.includes(userSharedWith)) throw 'Could not find user'
             sharedWith[i] = userSharedWith
@@ -128,7 +133,7 @@ export const updateEventInDb = async (
     if (!location) throw 'Location not provided';
     if (!reminder) throw 'Reminder not provided';
     if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read';
-    if (isRecurring && !recurrenceFrequency) throw 'Recurrence frequency not provided';
+    if (isRecurring && (!recurrenceFrequency ||  recurrenceFrequency === '')) throw 'Recurrence frequency not provided';
 
     if (typeof title !== 'string' || title.length < 1 || title.length > 30) throw 'Title should be a string between 1 and 30 characters';
     if (typeof description !== 'string' || description.length < 1 || description.length > 300) throw 'Description should be a string between 1 and 300 characters';
@@ -138,28 +143,40 @@ export const updateEventInDb = async (
     if (startTime > endTime || startTime < currentTime) throw 'Start time should be before end time and cannot be before current time';
     if (typeof location !== 'string' || location.length < 1 || location.length > 30) throw 'Location should be a string between 1 and 30 characters';
 
-    // Processing sharedWith
-    if (!sharedWith) throw 'sharedWith not provided';
-    if (typeof sharedWith === 'string') {
-        try {
-            sharedWith = JSON.parse(sharedWith).map(tag => tag.value);
-        } catch (error) {
-            throw 'Invalid format for sharedWith field';
+    if (!Array.isArray(sharedWith)) throw 'sharedWith must be an array'
+
+    if(sharedWith.length>0)
+    {
+        for (let i = 0; i < sharedWith.length; i++) {
+            let userSharedWith = await getIdFromEmail(sharedWith[i])
+            if (userSharedWith === createdBy) throw 'You cannot add yourself to the list of shared users'
+            if (!ObjectId.isValid(userSharedWith)) throw 'Invalid ID';
+            if (!allUserIDs.includes(userSharedWith)) throw 'Could not find user'
+            sharedWith[i] = userSharedWith
+
         }
     }
-    if (!Array.isArray(sharedWith)) throw 'sharedWith must be an array';
+
+    
+
 
     let allUsers = await getAllUsersWithSchedules();
     let allUserIDs = allUsers.map(user => user._id.toString());
 
-    if (sharedWith.length > 0) {
-        sharedWith = sharedWith.map(email => {
-            if (!isValidEmail(email)) throw 'Invalid email in sharedWith';
-            return email;
-        });
-    }
+    
 
     const eventCollection = await events();
+
+    const idno = ObjectId.createFromHexString(id);
+
+    let origSharedWith = await eventCollection.findOne({_id : idno})
+    origSharedWith = origSharedWith.sharedWith
+
+    sharedWith = sharedWith.concat(origSharedWith)
+
+
+    sharedWith = [...new Set(sharedWith)]
+
 
     let updateInfo = {
         title,
@@ -173,7 +190,7 @@ export const updateEventInDb = async (
         sharedWith
     };
 
-    const idno = new ObjectId(id);
+    
 
     const updatedEvent = await eventCollection.findOneAndUpdate(
         { _id: idno },
@@ -213,7 +230,7 @@ export const deleteEventFromDb = async (id) => {
         
     if (!ObjectId.isValid(id)) throw 'Invalid ID';
 
-    //TODO : REMOVE EVENT ID FROM SHAREDWITH
+    
     const event = await events();
     const idno = ObjectId.createFromHexString(id);
     const deletedEvent = await event.findOneAndDelete({_id: idno});
@@ -226,11 +243,20 @@ export const deleteEventFromDb = async (id) => {
     userId = ObjectId.createFromHexString(userId)
 
     let eventCreator = await user.findOne({_id : userId})
-    let schedule = eventCreator.schedule
+    let schedule = await schedules()
     let updatedUser = await user.updateOne({_id : userId},{$pull : {eventsCreated : id}})
 
+    await user.updateMany(
+        {}, 
+        {
+           $pull: { eventsShared: id }         }
+     )
+
     if(!updatedUser) throw 'Event could not be removed from user events created'
-    await deleteEventFromSchedule(schedule)
+    userId = userId.toString()
+    
+     await schedule.updateMany({}, {$pull : {events : id}})
+
     return 'The event ' + deletedEvent.title + ' has been deleted';
 
 
