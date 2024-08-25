@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import {isValidEmail} from '../helpers.js'
 import {getAllUsersWithSchedules} from './users.js'
 import { deleteEventFromSchedule } from './schedule.js';
+import { createNotification } from './notification.js';
 
 export const createEvent = async (
     title,
@@ -106,70 +107,97 @@ export const getEventById = async (id) => {
     return ev;
 }
 
-export const updateEventInDb = async (id, title,
+
+export const updateEventInDb = async (
+    id,
+    title,
     description,
     startTime,
     endTime,
     location,
     reminder,
     isRecurring,
-    recurrenceFrequency, sharedWith) => {if (!title) throw 'Title not provided'
-        if (!description) throw 'not provided'
-        if (!startTime) throw 'not provided'
-        if (!endTime) throw 'not provided'
-        if (!location) throw 'not provided'
-        if (!reminder) throw 'not provided'
-        if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read'
-        if (!recurrenceFrequency) throw 'not provided'
-    
-        if (typeof title!== 'string' || title.length <1 || title.length>30) throw 'Title should be a string between 1 and 30 characters'
-        if (typeof description !== 'string' || description.length <1 || description.length>300) throw 'Description should be a string between 1 and 300 characters'
-        if (!(startTime instanceof Date)) throw 'Start time should be a valid instance of Date object'
-        if (!(endTime instanceof Date)) throw 'Start time should be a valid instance of Date object'
-        let currentTime = new Date()
-        if (startTime > endTime || startTime < currentTime) throw 'Start time should be before end time , and cannot be before current time'
-        if (typeof location !== 'string' || location.length <1 || location.length>30) throw 'Location should be a string between 1 and 30 characters'
+    recurrenceFrequency,
+    sharedWith
+) => {
+    // Input validations
+    if (!title) throw 'Title not provided';
+    if (!description) throw 'Description not provided';
+    if (!startTime) throw 'Start time not provided';
+    if (!endTime) throw 'End time not provided';
+    if (!location) throw 'Location not provided';
+    if (!reminder) throw 'Reminder not provided';
+    if (typeof isRecurring !== 'boolean') throw 'Field isRecurring could not be read';
+    if (!recurrenceFrequency) throw 'Recurrence frequency not provided';
 
-        if (!sharedWith) throw 'sharedWith not provided'
+    if (typeof title !== 'string' || title.length < 1 || title.length > 30) throw 'Title should be a string between 1 and 30 characters';
+    if (typeof description !== 'string' || description.length < 1 || description.length > 300) throw 'Description should be a string between 1 and 300 characters';
+    if (!(startTime instanceof Date)) throw 'Start time should be a valid instance of Date object';
+    if (!(endTime instanceof Date)) throw 'End time should be a valid instance of Date object';
+    let currentTime = new Date();
+    if (startTime > endTime || startTime < currentTime) throw 'Start time should be before end time and cannot be before current time';
+    if (typeof location !== 'string' || location.length < 1 || location.length > 30) throw 'Location should be a string between 1 and 30 characters';
 
-
-        if (Array.isArray(sharedWith)) throw 'sharedWith must be an array'
-
-        if(sharedWith.length>0)
-        {
-            for (let i = 0; i < sharedWith.length; i++) {
-                let userSharedWith = sharedWith[i]
-                if (!ObjectId.isValid(userSharedWith)) throw 'Invalid ID';
-                if (!allUserIDs.includes(userSharedWith)) throw 'Could not find user'
-                sharedWith[i] = userSharedWith
-    
-            }
+    if (typeof sharedWith === 'string') {
+        try {
+            sharedWith = JSON.parse(sharedWith).map(tag => tag.value);
+        } catch (error) {
+            throw 'Invalid format for sharedWith field';
         }
-        
-        // INSERT THE VALIDATION FOR RECURRENCE FREQUENCY
-    
-        const event = await events()
-    
-        let updateInfo = {title,
-            description,
-            startTime,
-            endTime,
-            location,
-            reminder,
-            isRecurring,
-            recurrenceFrequency, sharedWith}
-        
-            const idno = ObjectId.createFromHexString(id);
+    }
 
-            const updatedEvent = event.findOneAndUpdate(
-                {_id: idno},
-                {$set: updateInfo},
-                {returnDocument: 'after'})
+    if (!Array.isArray(sharedWith)) throw 'sharedWith must be an array';
 
-            if (!updatedEvent) throw 'Could not update band';
-            updatedEvent._id = idno.toString();
-            return updatedEvent;
-}
+    if (sharedWith.length > 0) {
+        sharedWith = sharedWith.map(email => {
+            if (!isValidEmail(email)) throw 'Invalid email in sharedWith';
+            return email;
+        });
+    }
+
+    const eventCollection = await events();
+
+    let updateInfo = {
+        title,
+        description,
+        startTime,
+        endTime,
+        location,
+        reminder,
+        isRecurring,
+        recurrenceFrequency,
+        sharedWith
+    };
+
+    const idno = new ObjectId(id);
+
+    const updatedEvent = await eventCollection.findOneAndUpdate(
+        { _id: idno },
+        { $set: updateInfo },
+        { returnDocument: 'after' }
+    );
+
+    if (!updatedEvent.value) throw 'Could not update event';
+
+    // Notification Logic
+    try {
+        // Notify the event creator
+        await createNotification(updatedEvent.value.createdBy, 'Event Updated', `Your event "${title}" has been updated.`);
+
+        // Notify all users in sharedWith array
+        for (const email of sharedWith) {
+            // Assuming getIdFromEmail is a function that retrieves a user's ID from their email
+            const userId = await getIdFromEmail(email);
+            await createNotification(userId, 'Event Updated', `The event "${title}" you are part of has been updated.`);
+        }
+    } catch (notificationError) {
+        console.error('Failed to send notifications:', notificationError);
+    }
+
+    updatedEvent.value._id = idno.toString();
+
+    return updatedEvent.value;
+};
 
 export const deleteEventFromDb = async (id) => {
 
