@@ -57,37 +57,39 @@ export const createSchedule = async () => {
 }
 
 export const getScheduleById = async (id) => {
-  const schedulesCollection = await schedules();
-  const eventsCollection = await events();
+    const schedulesCollection = await schedules();
+    const eventsCollection = await events();
 
-  if (!ObjectId.isValid(id)) throw 'Not a valid ID';
+    if (!ObjectId.isValid(id)) throw 'Not a valid ID';
 
-  const scheduleId = new ObjectId(id);
-  const schedule = await schedulesCollection.findOne({ _id: scheduleId });
+    const scheduleId = new ObjectId(id);
+    const schedule = await schedulesCollection.findOne({ _id: scheduleId });
 
-  if (!schedule) {
-    throw new Error('Schedule not found');
-  }
+    if (!schedule) {
+        throw new Error('Schedule not found');
+    }
 
-  // Fetch events associated with the schedule asynchronously
-  const eventPromises = schedule.events.map(eventId => 
-    eventsCollection.findOne({ _id: new ObjectId(eventId) })
-  );
-  const populatedEvents = await Promise.all(eventPromises);
+    // Fetch events associated with the schedule asynchronously
+    const eventPromises = schedule.events.map(eventId => 
+        eventsCollection.findOne({ _id: new ObjectId(eventId) })
+    );
+    const populatedEvents = await Promise.all(eventPromises);
 
-  // Map the events to FullCalendar format
-  schedule.events = populatedEvents.map(event => ({
-    title: event.title,
-    startTime: event.startTime.toISOString(),
-    endTime: event.endTime.toISOString(),
-    location : event.location,
-    description : event.description,
-    reminder : event.reminder,
-    createdBy : event.createdBy,
-    eventId : event._id.toString()
-  }));
+    // Ensure startTime and endTime are Date objects and map the events to FullCalendar format
+    schedule.events = populatedEvents.map(event => {
+        return {
+            title: event.title,
+            startTime: new Date(event.startTime).toISOString(),  // Convert to ISO string
+            endTime: new Date(event.endTime).toISOString(),      // Convert to ISO string
+            location: event.location,
+            description: event.description,
+            reminder: event.reminder,
+            createdBy: event.createdBy,
+            eventId: event._id.toString()
+        };
+    });
 
-  return schedule;
+    return schedule;
 };
 
 export const deleteEventFromSchedule = async(userId, eventId) => {

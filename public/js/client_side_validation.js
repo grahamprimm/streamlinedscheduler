@@ -126,7 +126,7 @@ const handleFormSubmission = (form, url) => {
           // Redirect to the login page after a short delay
           setTimeout(() => {
               window.location.href = result.redirectUrl;
-          }, 2000);  // 2-second delay before redirecting
+          }, 500);  // 2-second delay before redirecting
       } else {
           displayErrors([result.message || 'An error occurred while processing your request.']);
       }

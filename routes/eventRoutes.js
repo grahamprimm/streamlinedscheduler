@@ -75,120 +75,139 @@ router.post('/create-event', async (req, res) => {
   }
 });
 
-router.get('edit/:id', async (req, res) => {
+router.get('/edit/:id', async (req, res) => {
+    try {
+        let id = req.params.id;
+        let event = await getEventById(id);
 
-try{
-let id = req.params.id
+        if (!event) {
+            throw new Error('Event not found');
+        }
 
-let event = await getEventById()
+        // Convert startTime and endTime to ISO strings for the form inputs
+        let {
+            title,
+            description,
+            startTime,
+            endTime,
+            location,
+            reminder,
+            isRecurring,
+            recurrenceFrequency,
+            sharedWith
+        } = event;
 
-let title = event.title
-let description = event.description
-let startTime = event.startTime
-let endTime = event.endTime
-let location = event.location
-let reminder = event.reminder
-let isRecurring = event.isRecurring
-let recurrenceFrequency = event.recurrenceFrequency
-let sharedWith = event.sharedWith
+        // Adjust times to local format
+        const localStartTime = new Date(startTime).toISOString().slice(0, -1);
+        const localEndTime = new Date(endTime).toISOString().slice(0, -1);
 
-
-
-res.status(200).render('edit-event', {id, title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith})
-
-}catch(e){
-  res.status(400).render('edit-event', {title : 'Edit Event', error : e//.message
-
-  })
-}
-
-})
-// Route to edit an existing event
-router.post('/edit/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title,
-    description,
-    startTime,
-    endTime,
-    location,
-    reminder,
-    isRecurring,
-    recurrenceFrequency, sharedWith, userId } = req.body;
-
-    // Fetch the existing event
-    const event = await getEventById(id);
-
-    if (!event) {
-      return res.status(404).render('/schedule', {error : "Event not found"});
+        res.status(200).render('edit-event', {
+            id,
+            title,
+            description,
+            startTime: localStartTime,
+            endTime: localEndTime,
+            location,
+            reminder,
+            isRecurring,
+            recurrenceFrequency,
+            sharedWith: sharedWith.join(', ') // Convert array to string for display
+        });
+    } catch (e) {
+        res.status(400).render('error', { message: e.message });
     }
-
-    sharedWith = sharedWith.map(element => element.trim())
-    sharedWith = sharedWith.filter(element => element !== '')
-
-    let origSharedWith = event.sharedWith
-
-    // Update the event
-    const updatedEvent = await updateEventInDb(id, title, description, startTime, endTime, location, reminder, isRecurring, recurrenceFrequency, sharedWith);
-
-    sharedWith = sharedWith.concat(origSharedWith)
-
-
-    sharedWith = [...new Set(sharedWith)]
-
-    if (sharedWith.length > 0) {
-
-      for (let i = 0; i<sharedWith.length; i++)
-      {
-        await addEventToScheduleByUserId(sharedWith[i], id)
-        let userShared = await users()
-        await userShared.updateOne({email : sharedWith[i]},{$push : {eventShared : id}})
-      }
-
-    } 
-
-    
-
-    // Update the user's schedule
-    await updateScheduleEvents(userId, updatedEvent);
-
-    // Create a notification for the user
-    await createNotification(userId, 'Event Updated', `Event "${title}" has been updated.`);
-
-    res.json({ success: true, event: updatedEvent });
-  } catch (e) {
-    console.error("Error editing event:", e);
-    res.status(400).json({ success: false, message: e.message });
-  }
 });
+
+
+router.post('/edit/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            title,
+            description,
+            startTime,
+            endTime,
+            location,
+            reminder,
+            isRecurring,
+            recurrenceFrequency,
+            sharedWith
+        } = req.body;
+
+        // Convert form input values to Date objects
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+
+        // Validate date objects
+        if (isNaN(startDate.getTime())) {
+            throw new Error('Start time is not a valid Date object');
+        }
+        if (isNaN(endDate.getTime())) {
+            throw new Error('End time is not a valid Date object');
+        }
+
+        // Parse the sharedWith field into an array
+        // let sharedWithArray = sharedWith.split(',').map(email => email.trim());
+
+        // Now pass the valid Date objects to the update function
+        const updatedEvent = await updateEventInDb(
+            id,
+            title,
+            description,
+            startDate,  // Pass Date object
+            endDate,    // Pass Date object
+            location,
+            parseInt(reminder, 10),
+            isRecurring === 'on',
+            recurrenceFrequency,
+            sharedWith
+        );
+
+        // If the update is successful, redirect back to the schedule page
+        if (updatedEvent) {
+            return res.redirect('/schedule');
+        } else {
+            throw new Error('Event update failed');
+        }
+    } catch (e) {
+        console.error('Error updating event:', e);
+        res.status(400).render('edit-event', { error: e.message });
+    }
+});
+
 
 // Route to delete an existing event
 router.post('/delete/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { userId } = req.body;
+    try {
+        const { id } = req.params;
+        const { userId } = req.body;
 
-    // Fetch the existing event
-    const event = await getEventById(id);
+        // Validate the userId before proceeding
+        if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+            throw new Error('User ID must be a non-empty string.');
+        }
 
-    if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
+        // Fetch the existing event
+        const event = await getEventById(id);
+
+        if (!event) {
+            return res.status(404).json({ success: false, message: 'Event not found' });
+        }
+
+        // Delete the event from the database
+        await deleteEventFromDb(id);
+
+        // Remove the event from the user's schedule
+        await deleteEventFromSchedule(userId, id);
+
+        // Create a notification for the user
+        await createNotification(userId, 'Event Deleted', `Event "${event.title}" has been deleted.`);
+
+        res.json({ success: true, message: 'Event deleted successfully' });
+    } catch (e) {
+        console.error("Error deleting event:", e);
+        res.status(400).json({ success: false, message: e.message });
     }
-
-    // Delete the event from the database
-    await deleteEventFromDb(id);
-
-    // Remove the event from the user's schedule
-    await deleteEventFromSchedule(userId, id);
-
-    // Create a notification for the user
-    await createNotification(userId, 'Event Deleted', `Event "${event.title}" has been deleted.`);
-
-    res.json({ success: true, message: 'Event deleted successfully' });
-  } catch (e) {
-    console.error("Error deleting event:", e);
-    res.status(400).json({ success: false, message: e.message });
-  }
 });
 
 export default router;

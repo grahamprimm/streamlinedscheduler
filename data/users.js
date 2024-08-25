@@ -98,35 +98,40 @@ export const getUserById = async (userId) => {
 };
 
 export const getAllUsersWithSchedules = async () => {
-  const usersCollection = await users();
-  const eventsCollection = await events();
-  const schedulesCollection = await schedules();
+    const usersCollection = await users();
+    const eventsCollection = await events();
+    const schedulesCollection = await schedules();
 
-  const usersWithSchedules = await usersCollection.find({}).toArray();
+    const usersWithSchedules = await usersCollection.find({}).toArray();
 
-  for (let user of usersWithSchedules) {
-    // Fetch the user's schedule
-    const schedule = await schedulesCollection.findOne({ _id: new ObjectId(user.schedule) });
-    
-    // Fetch all events in the schedule
-    const eventPromises = schedule.events.map(eventId => 
-      eventsCollection.findOne({ _id: new ObjectId(eventId) })
-    );
-    const allEvents = await Promise.all(eventPromises);
+    for (let user of usersWithSchedules) {
+        // Fetch the user's schedule
+        const schedule = await schedulesCollection.findOne({ _id: new ObjectId(user.schedule) });
+        
+        if (schedule && schedule.events) {
+            // Fetch all events in the schedule
+            const eventPromises = schedule.events.map(eventId => 
+                eventsCollection.findOne({ _id: new ObjectId(eventId) })
+            );
+            const allEvents = await Promise.all(eventPromises);
 
-    // Add these events to the user object
-    user.allEvents = allEvents.map(event => ({
-      title: event.title,
-      start: event.startTime.toISOString(),
-      end: event.endTime.toISOString(),
-      description : event.description,
-      location : event.location,
-      reminder : event.reminder
-    }));
-  }
+            // Ensure startTime and endTime are Date objects and convert to ISO string
+            user.allEvents = allEvents.map(event => ({
+                title: event.title,
+                start: new Date(event.startTime).toISOString(),  // Convert to ISO string
+                end: new Date(event.endTime).toISOString(),      // Convert to ISO string
+                description: event.description,
+                location: event.location,
+                reminder: event.reminder
+            }));
+        } else {
+            user.allEvents = []; // If no schedule or events, assign an empty array
+        }
+    }
 
-  return usersWithSchedules;
+    return usersWithSchedules;
 };
+
 
 export const getIdFromEmail = async (email) => {
 
