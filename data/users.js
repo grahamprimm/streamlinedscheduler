@@ -85,6 +85,7 @@ export const getUserById = async (userId) => {
   console.log("Fetching user by ID:", userId);
 
   let id = ObjectId.createFromHexString(userId)
+
   const user = await usersCollection.findOne({ _id: id });
 
   if (!user) {
@@ -117,7 +118,10 @@ export const getAllUsersWithSchedules = async () => {
     user.allEvents = allEvents.map(event => ({
       title: event.title,
       start: event.startTime.toISOString(),
-      end: event.endTime.toISOString()
+      end: event.endTime.toISOString(),
+      description : event.description,
+      location : event.location,
+      reminder : event.reminder
     }));
   }
 
@@ -125,13 +129,18 @@ export const getAllUsersWithSchedules = async () => {
 };
 
 export const getIdFromEmail = async (email) => {
-  email = isValidEmail(email);
-  const userList = await users();
-  const user = await userList.findOne({ email: email });
 
-  if (!user) {
-    throw new Error('User not found');
-  }
+email = isValidEmail(email)
 
-  return user._id.toString();
+const userList = await users()
+
+const user = await userList.findOne({ email: email });
+
+if (!user) {
+throw new Error('User not found');
+}
+
+    
+return user._id.toString();
+
 }
