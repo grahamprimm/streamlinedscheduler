@@ -1,5 +1,5 @@
 <div id="userView">
-    <p id="welcome">Welcome {{firstName}} {{lastName}}, the time is now: {{currentTime}} {{timezone}}. Your role in the system is: {{role}}.</p>
+    <p id="welcome">Welcome {{firstName}} {{lastName}}, the time is now: {{currentTime}} {{timezone}}. Your role in the system is: {{role}}. {{userId}}</p>
     <p>Schedule: {{schedule.title}}</p>
 </div>
 
@@ -11,7 +11,8 @@
   document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var events = [];
-
+    var userId = '{{userId}}'
+    console.log("User ID:", userId)
     // Loop through the events array in the schedule
     {{#each schedule.events}}
     events.push({
@@ -20,7 +21,10 @@
       end: "{{this.endTime}}",
       description : "{{this.description}}",
       location : "{{this.location}}",
-      reminder : "{{this.reminder}}"
+      reminder : "{{this.reminder}}",
+      eventId : "{{this.eventId}}",
+      createdBy : "{{this.createdBy}}",
+      userId : "{{userId}}"
     });
     {{/each}}
 
@@ -29,10 +33,28 @@
       duration: { days: 7 },
       events: events,
       eventContent: function(info) {
+
+        const isCreator = info.event.extendedProps.createdBy === userId ;
+
+        var buttons = '';
+        if (isCreator) {
+          buttons = '<button onclick="window.location.href=\'/edit/' + info.event.extendedProps.eventId + '\'">Edit</button>' +
+                    '<button onclick="if(confirm(\'Are you sure you want to delete this event from the database?\')) { ' +
+                    'fetch(\'/delete/' + info.event.extendedProps.eventId + '\', { method: \'POST\' })' +
+                    '.then(() => location.reload()); }">Delete from DB</button>';
+        } else {
+          buttons = '<button onclick="if(confirm(\'Are you sure you want to remove this event from your schedule?\')) { ' +
+                    'fetch(\'/remove-from-schedule/' + info.event.extendedProps.eventId + '\', { method: \'POST\' })' +
+                    '.then(() => location.reload()); }">Delete from Schedule</button>';
+        }
+
     return {
       html: 'Title : ' + info.event.title + '<br>Description : ' + info.event.extendedProps.description + 
             '<br>Location : ' + info.event.extendedProps.location + 
-            '<br>Reminder : ' + info.event.extendedProps.reminder + ' minutes prior'
+            '<br>Reminder : ' + info.event.extendedProps.reminder + ' minutes prior <br> ID: ' + info.event.extendedProps.eventId + '<br> Created By : ' 
+            +info.event.extendedProps.createdBy + '<br> User ID : ' 
+            +userId + '<br> Is creator same as user ? : ' + isCreator
+           + buttons
     };
   }
     });
