@@ -82,7 +82,9 @@ export const getScheduleById = async (id) => {
     endTime: event.endTime.toISOString(),
     location : event.location,
     description : event.description,
-    reminder : event.reminder
+    reminder : event.reminder,
+    createdBy : event.createdBy,
+    eventId : event._id.toString()
   }));
 
   return schedule;
