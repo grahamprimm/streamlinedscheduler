@@ -122,7 +122,9 @@ export const getAllUsersWithSchedules = async () => {
                 end: new Date(event.endTime).toISOString(),      // Convert to ISO string
                 description: event.description,
                 location: event.location,
-                reminder: event.reminder
+                reminder: event.reminder,
+                createdBy: event.createdBy,
+                eventId: event._id.toString()
             }));
         } else {
             user.allEvents = []; // If no schedule or events, assign an empty array
