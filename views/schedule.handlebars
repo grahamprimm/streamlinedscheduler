@@ -3,6 +3,18 @@
     <p>Schedule: {{schedule.title}}</p>
 </div>
 
+    <!-- Notifications Section -->
+<div id="notifications">
+    <h3>Your Notifications</h3>
+    <ul>
+        {{#each notifications}}
+            <li>{{this.type}}: {{this.message}} ({{this.sentTime}})</li>
+        {{else}}
+            <li>No notifications to show.</li>
+        {{/each}}
+    </ul>
+</div>
+
 <button id="create-event">Create an Event</button>
 <div id="calendar"></div>
 
