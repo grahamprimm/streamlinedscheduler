@@ -98,15 +98,31 @@ router.get('/edit/:id', async (req, res) => {
         } = event;
 
         // Adjust times to local format
-        const localStartTime = new Date(startTime).toISOString().slice(0, -1);
-        const localEndTime = new Date(endTime).toISOString().slice(0, -1);
+
+        let localStartTime = new Date(startTime)
+        let localEndTime = new Date(endTime)
+        
+        const starttimezoneOffset = localStartTime.getTimezoneOffset();
+        const endtimezoneOffset = localEndTime.getTimezoneOffset();
+        
+        
+        
+        startTime = new Date(localStartTime.getTime() - starttimezoneOffset * 60000)
+        endTime = new Date(localEndTime.getTime() - endtimezoneOffset * 60000)
+
+        startTime = startTime.toISOString().slice(0,16)
+        endTime = endTime.toISOString().slice(0,16)
+
+        console.log(startTime)
+        console.log(endTime)
+        
 
         res.status(200).render('edit-event', {
             id,
             title,
             description,
-            startTime: localStartTime,
-            endTime: localEndTime,
+            startTime,
+            endTime,
             location,
             reminder,
             isRecurring,
