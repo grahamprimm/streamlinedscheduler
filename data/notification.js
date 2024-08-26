@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 export const createNotification = async (userID, type, message, reminderTime) => {
     const notificationsCollection = await notifications();
 
+
     const newNotification = {
         _id: new ObjectId(),
         userID: new ObjectId(userID),
@@ -59,6 +60,9 @@ export const getNotificationsByUserId = async (userID) => {
         return []; // Return an empty array in case of error
     }
 };
+
+
+
 
 
 
