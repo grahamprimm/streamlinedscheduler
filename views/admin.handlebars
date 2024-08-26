@@ -62,10 +62,17 @@ document.addEventListener('DOMContentLoaded', function() {
       height: 'auto',
       events: events,
       eventContent: function(info) {
+        buttons = '<button onclick="window.location.href=\'/edit/' + info.event.extendedProps.eventId + '\'">Edit</button>' +
+                    '<button onclick="if(confirm(\'Are you sure you want to delete this event from the database?\')) { ' +
+                    'fetch(\'/delete/' + info.event.extendedProps.eventId + '\', { ' +
+                    'method: \'POST\', ' +
+                    'headers: { \'Content-Type\': \'application/json\' }, ' +
+                    'body: JSON.stringify({ userId: \'' + info.event.extendedProps.createdBy + '\' }) })' +
+                    '.then(() => location.reload()); }">Delete from DB</button>'
     return {
       html: 'Title : ' + info.event.title + '<br>Description : ' + info.event.extendedProps.description + 
             '<br>Location : ' + info.event.extendedProps.location + 
-            '<br>Reminder : ' + info.event.extendedProps.reminder + ' minutes prior'
+            '<br>Reminder : ' + info.event.extendedProps.reminder + ' minutes prior' + buttons
     };
   }
     });
