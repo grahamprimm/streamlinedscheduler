@@ -323,3 +323,26 @@ export const generateRecurringEvents = async (event, originalEventId, numberOfOc
         await eventsCollection.insertOne(recurringEvent);
     }
 };
+
+export const scheduleEventReminder = async (event) => {
+    const reminderTime = new Date(event.startTime);
+    reminderTime.setMinutes(reminderTime.getMinutes() - event.reminder);
+
+    console.log(`Scheduling reminder for event ID ${event._id} at ${reminderTime}`);
+
+    if (reminderTime > new Date()) {
+        const notificationsCollection = await notifications();
+
+        await notificationsCollection.insertOne({
+            userID: new ObjectId(event.createdBy),
+            type: 'Event Reminder',
+            message: `Reminder: Your event "${event.title}" is starting soon.`,
+            reminderTime,
+            sentTime: null
+        });
+
+        console.log(`Notification scheduled for ${reminderTime}`);
+    } else {
+        console.log('Reminder time is in the past, notification not scheduled.');
+    }
+};
