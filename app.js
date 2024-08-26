@@ -50,6 +50,40 @@ app.use(loggingMiddleware);
 
 configRoutes(app);
 
+cron.schedule('* * * * *', async () => {  // Runs every minute
+    console.log('Cron job running at:', new Date());
+
+    const notificationsCollection = await notifications();
+    const currentTime = new Date();
+
+    // Find notifications that need to be sent
+    const dueNotifications = await notificationsCollection.find({
+        reminderTime: { $lte: currentTime },
+        sentTime: null  // Only send unsent notifications
+    }).toArray();
+
+    console.log('Due notifications:', dueNotifications.length);
+
+    for (const notification of dueNotifications) {
+        console.log(`Sending notification ID ${notification._id} for user ID ${notification.userID}`);
+
+        try {
+            // Update sentTime to indicate the notification has been sent
+            const updateResult = await notificationsCollection.updateOne(
+                { _id: notification._id },
+                { $set: { sentTime: new Date() } }
+            );
+
+            if (updateResult.modifiedCount === 0) {
+                throw new Error(`Failed to update sentTime for notification ID ${notification._id}`);
+            }
+
+            console.log(`Notification ID ${notification._id} sent and marked as sent.`);
+        } catch (error) {
+            console.error(`Error sending notification ID ${notification._id} for user ID ${notification.userID}:`, error);
+        }
+    }
+});
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
