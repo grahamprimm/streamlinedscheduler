@@ -48,6 +48,8 @@ app.use(session({
 
 app.use(loggingMiddleware);
 
+configRoutes(app);
+
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
